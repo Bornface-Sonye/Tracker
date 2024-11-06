@@ -1,0 +1,36 @@
+/* complaint.css */
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.btn-primary, .btn-success {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.alert {
+    margin-top: 20px;
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding: 10px;
+    }
+    h2 {
+        font-size: 1.5rem;
+    }
+}
