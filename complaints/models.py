@@ -161,6 +161,10 @@ class Result(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
+
 class Complaint(models.Model):
     complaint_code = models.CharField(
         max_length=100,
@@ -168,7 +172,7 @@ class Complaint(models.Model):
         unique=True,
         help_text="Please Enter Complaint Code"
     )
-    unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    unit_code = models.ForeignKey(UnitCourse, on_delete=models.CASCADE)
     reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
     missing_mark = models.CharField(
         max_length=20,
@@ -185,6 +189,12 @@ class Complaint(models.Model):
     exam_date = models.DateField(help_text="Enter Main Exam Date, [dd, mm, yy]")
     description = models.TextField(help_text="Please Enter Description")
     date = models.DateField(default=timezone.now)
+    response = models.CharField(
+        max_length=3,
+        choices=[('Yes', 'Yes'), ('No', 'No')],
+        default='No',
+        help_text="Indicate if the complaint has been responded to"
+    )
 
     class Meta:
         constraints = [
@@ -207,6 +217,7 @@ class Complaint(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+
 class Response(models.Model):
     response_code = models.CharField(max_length=100, primary_key=True)
     complaint_code = models.ForeignKey(Complaint, on_delete=models.CASCADE)
@@ -222,7 +233,7 @@ class Response(models.Model):
         help_text="Select a response"
     )
     reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
-    unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    unit_code = models.ForeignKey(UnitCourse, on_delete=models.CASCADE)
     cat = models.CharField(max_length=3, default='-', help_text="Enter Cat Mark or -")  # Now non-nullable with default
     exam = models.CharField(max_length=3, default='-', help_text="Enter Exam Mark or -")  # Required field
     date = models.DateField(default=timezone.now)
