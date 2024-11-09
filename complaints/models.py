@@ -168,7 +168,7 @@ class Complaint(models.Model):
         unique=True,
         help_text="Please Enter Complaint Code"
     )
-    unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    unit_code = models.CharField(max_length=20, default='BCS 110', help_text="Select Unit Code")
     reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
     missing_mark = models.CharField(
         max_length=20,
