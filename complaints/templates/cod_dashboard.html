@@ -1,32 +1,55 @@
 {% extends 'cod_base_dashboard.html' %}
 
 {% block content %}
-
-    <!-- Main Dashboard Content -->
-    <div class="container-fluid">
-        <div class="row g-3 mt-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header" style="background-color: #007bff; color: white;">
-                        <h3>Total Complaints</h3>
-                    </div>
-                    <div class="card-body">
-                        <h4 class="text-center">{{ 12 }}</h4>
-                    </div>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <!-- Sidebar (if required) -->
+            <div class="card">
+                <div class="card-body">
+                    <h4>Welcome, {{ last_name }}</h4>
+                    <p>{{ user.username }}</p>
+                    <ul class="list-group">
+                        <li class="list-group-item"><a href="#">Dashboard</a></li>
+                        <li class="list-group-item"><a href="#">Manage Units</a></li>
+                        <li class="list-group-item"><a href="#">Manage Courses</a></li>
+                    </ul>
                 </div>
             </div>
+        </div>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header" style="background-color: #007bff; color: white;">
-                        <h3>Total Responses</h3>
+        <div class="col-lg-9">
+            <!-- Main content area -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">COD Dashboard</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Units</h5>
+                            <ul class="list-group">
+                                {% for unit in units %}
+                                <li class="list-group-item">{{ unit.unit_name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>Courses</h5>
+                            <ul class="list-group">
+                                {% for course in courses %}
+                                <li class="list-group-item">{{ course.course_name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <h4 class="text-center">Ksh. {{ 5 }}</h4>
-                    </div>
+                </div>
+                <div class="card-footer">
+                    <p class="text-center">Powered by COD</p>
                 </div>
             </div>
         </div>
     </div>
-
+</div>
 {% endblock %}
