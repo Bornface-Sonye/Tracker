@@ -32,7 +32,7 @@ from django.contrib import messages
 
 from .models import ( 
 School, Department, Course, Student, Lecturer, Unit, NominalRoll, UnitCourse, 
-Response, LecturerUnit, Result, Complaint, System_User, Payment
+Response, LecturerUnit, Result, Complaint, System_User, Payment, AcademicYear
 )
 
 from .forms import (
@@ -240,6 +240,8 @@ class StudentRegNo(View):
                 return render(request, 'student_reg_no.html', {'form': form})
         return render(request, 'student_reg_no.html', {'form': form})
 
+from django.db import IntegrityError
+
 class PostComplaint(View):
     def get(self, request):
         reg_no = request.session.get('registration_number')
@@ -247,7 +249,7 @@ class PostComplaint(View):
             return redirect('student')
         
         try:
-            student = Student.objects.get(reg_no=reg_no)
+            student = get_object_or_404(Student, reg_no=reg_no)
             form = PostComplaintForm(student=student)
             return render(request, 'post_complaint.html', {'form': form, 'student': student})
         except Student.DoesNotExist:
@@ -259,7 +261,7 @@ class PostComplaint(View):
         if not reg_no:
             return redirect('student')
 
-        student = Student.objects.get(reg_no=reg_no)
+        student = get_object_or_404(Student, reg_no=reg_no)
         form = PostComplaintForm(request.POST, student=student)
 
         if form.is_valid():
@@ -267,12 +269,25 @@ class PostComplaint(View):
             complaint.reg_no = student  # Attach the student
             complaint.complaint_code = form.generate_complaint_code()
             complaint.exam_date = form.cleaned_data['exam_date']
-            complaint.save()
-            messages.success(request, "Complaint posted successfully!")
-            return redirect('post-complaint')
+
+            # Check if a complaint already exists with the same reg_no and unit_code
+            if Complaint.objects.filter(reg_no=student, unit_code=complaint.unit_code).exists():
+                messages.error(request, "A complaint for this unit and student already exists.")
+                return render(request, 'post_complaint.html', {'form': form, 'student': student})
+            
+            try:
+                # Attempt to save the complaint
+                complaint.save()
+                messages.success(request, "Complaint posted successfully!")
+                return redirect('post-complaint')
+            except IntegrityError:
+                messages.error(request, "Failed to post complaint due to a unique constraint violation.")
         
+        # If form is invalid or if there is an error, re-render the form
         messages.error(request, "Failed to post complaint. Please check the details and try again.")
         return render(request, 'post_complaint.html', {'form': form, 'student': student})
+
+
 
 
 
@@ -301,6 +316,8 @@ class ComplaintsView(ListView):
 
         return render(request, self.template_name, {'complaints': complaints})
 
+
+from django.db import IntegrityError
 
 class ResponseView(FormView):
     template_name = 'response_form.html'
@@ -334,36 +351,44 @@ class ResponseView(FormView):
         return context
 
     def form_valid(self, form):
-        # Fetch the complaint based on the complaint code
         complaint_code = self.kwargs['complaint_code']
         complaint = get_object_or_404(Complaint, complaint_code=complaint_code)
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
+        # Check if a response already exists for the given reg_no and unit_code
+        if Response.objects.filter(reg_no=complaint.reg_no, unit_code=complaint.unit_code).exists():
+            messages.error(self.request, 'A response already exists for this unit and student.')
+            return self.form_invalid(form)
+
         # Wrap save and delete operations in a transaction
         with transaction.atomic():
-            # Create response instance but don't save it yet
-            response = form.save(commit=False)
-            response.response_code = self.generate_response_code()
-            response.complaint_code = complaint
-            response.responder = lecturer
-            response.reg_no = complaint.reg_no
-            response.unit_code = complaint.unit_code
-            response.date = timezone.now()
+            try:
+                # Create response instance but don't save it yet
+                response = form.save(commit=False)
+                response.response_code = self.generate_response_code()
+                response.responder = lecturer
+                response.reg_no = complaint.reg_no
+                response.unit_code = complaint.unit_code
+                response.date = timezone.now()
 
-            # Save the response instance
-            response.save()
-            
-            # Delete the complaint after saving the response
-            complaint.delete()
+                # Attempt to save the response instance
+                response.save()
 
-        # Add a success message
-        messages.success(self.request, 'Responses saved successfully.')
-       
+                # Delete the complaint after saving the response
+                complaint.delete()
+
+                # Add a success message
+                messages.success(self.request, 'Response saved successfully.')
+            except IntegrityError:
+                messages.error(self.request, 'Error: Response with this unit and registration number already exists.')
+                return self.form_invalid(form)
+
         return redirect(reverse('complaints'))
 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
+
 
 
 class LoadNominalRollView(View):
@@ -617,7 +642,13 @@ class NominalRollListView(ListView):
         context['academic_years'] = AcademicYear.objects.all()
         return context
 
-class LecturerOverdueComplaintsView(View):
+from django.utils import timezone
+from datetime import timedelta
+from django.shortcuts import render, redirect
+from django.views import View
+from .models import Lecturer, LecturerUnit, Complaint
+
+class LecturerOverdueComplaintsView(View): 
     def get(self, request):
         # Access the logged-in user's username from the session
         username = request.session.get('username')
@@ -629,22 +660,46 @@ class LecturerOverdueComplaintsView(View):
             cod_lecturer = Lecturer.objects.get(username=username)
             department_lecturers = Lecturer.objects.filter(dep_code=cod_lecturer.dep_code)
 
+            # Retrieve units taught by lecturers in the department
+            lecturer_units = LecturerUnit.objects.filter(lec_no__in=department_lecturers)
+            department_unit_codes = lecturer_units.values_list('unit_code', flat=True)
+
             # Calculate the time threshold for overdue complaints (more than 24 hours)
             overdue_threshold = timezone.now() - timedelta(hours=24)
 
-            # Retrieve complaints related to the specific lecturers that are overdue
+            # Retrieve overdue complaints related to the specific units
             overdue_complaints = Complaint.objects.filter(
-                unit_code__lec_no__in=department_lecturers,
-                date__lt=overdue_threshold
-            ).select_related('unit_code', 'reg_no')  # Optimize by using select_related
+                date__lt=overdue_threshold,
+                unit_code__in=department_unit_codes
+            ).select_related('reg_no', 'academic_year', 'unit_code')  # Optimize with select_related
 
+            # Get lecturer numbers associated with the overdue unit codes
+            lecturer_numbers = lecturer_units.filter(
+                unit_code__in=overdue_complaints.values_list('unit_code', flat=True)
+            ).values_list('lec_no', flat=True).distinct()
+
+            # Retrieve lecturers details who are associated with overdue complaints
+            overdue_lecturers = Lecturer.objects.filter(
+                lec_no__in=lecturer_numbers
+            ).only('phone_number', 'email_address')
+
+            # Prepare context data
             context = {
                 'overdue_complaints': overdue_complaints,
+                'overdue_lecturers': overdue_lecturers,
             }
-            return render(request, 'lecturer_complaints.htm', context)
+            return render(request, 'lecturer_complaints.html', context)
 
         except Lecturer.DoesNotExist:
             return render(request, 'lecturer_complaints.html', {'error': 'Lecturer not found.'})
+
+
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from datetime import timedelta
+from django.views import View
+from .models import Complaint, Lecturer, Unit, LecturerUnit
 
 class StudentOverdueComplaintsView(View):
     def get(self, request):
@@ -661,19 +716,34 @@ class StudentOverdueComplaintsView(View):
             # Calculate the time threshold for overdue complaints (more than 24 hours)
             overdue_threshold = timezone.now() - timedelta(hours=24)
 
-            # Query for overdue complaints related to students in the COD's department
+            # Step 1: Query for overdue complaints related to students in the COD's department
             overdue_complaints = Complaint.objects.filter(
                 reg_no__course_code__dep_code=department_code,
                 date__lt=overdue_threshold
-            ).select_related('reg_no', 'unit_code', 'unit_code__lec_no', 'academic_year')  # Optimize queries
+            ).select_related('reg_no', 'unit_code', 'academic_year')  # Optimize queries
 
+            lecturer_units = LecturerUnit.objects.all()
+            
+            # Get lecturer numbers associated with the overdue unit codes
+            lecturer_numbers = lecturer_units.filter(
+                unit_code__in=overdue_complaints.values_list('unit_code', flat=True)
+            ).values_list('lec_no', flat=True).distinct()
+
+            # Retrieve lecturers details who are associated with overdue complaints
+            overdue_lecturers = Lecturer.objects.filter(
+                lec_no__in=lecturer_numbers
+            ).only('phone_number', 'email_address')
+
+            # Prepare context for rendering
             context = {
                 'overdue_complaints': overdue_complaints,
+                'overdue_lecturers': overdue_lecturers,  # Pass lecturer details to template
             }
             return render(request, 'overdue_student_complaints.html', context)
 
         except Lecturer.DoesNotExist:
             return render(request, 'overdue_student_complaints.html', {'error': 'Lecturer not found.'})
+
 
 class ResponsesView(View):
     def get(self, request):

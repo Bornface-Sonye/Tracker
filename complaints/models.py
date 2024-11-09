@@ -168,7 +168,7 @@ class Complaint(models.Model):
         unique=True,
         help_text="Please Enter Complaint Code"
     )
-    unit_code = models.CharField(max_length=20, default='BCS 110', help_text="Select Unit Code")
+    unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
     reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
     missing_mark = models.CharField(
         max_length=20,
@@ -197,11 +197,6 @@ class Complaint(models.Model):
     def __str__(self):
         return f"{self.complaint_code}"
 
-    def clean(self):
-        # Additional custom validation if needed
-        if not self.unit_code or not self.reg_no:
-            raise ValidationError("Unit code and student registration number must be provided.")
-
     def save(self, *args, **kwargs):
         # Ensure clean validations are run before saving
         self.clean()
@@ -209,7 +204,6 @@ class Complaint(models.Model):
 
 class Response(models.Model):
     response_code = models.CharField(max_length=100, primary_key=True)
-    complaint_code = models.ForeignKey(Complaint, on_delete=models.CASCADE)
     responder = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
     response = models.CharField(
         max_length=100,

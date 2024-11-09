@@ -64,37 +64,43 @@ class StudentRegNoForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': 'Enter Registration Number'})
     )
 
+from django import forms
+from .models import Complaint, AcademicYear, Unit
+import random
+import string
+
 class PostComplaintForm(forms.ModelForm):
     exam_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         label="Exam Date"
     )
-    
+
     academic_year = forms.ModelChoiceField(
         queryset=AcademicYear.objects.all(),
         empty_label="Select Academic Year",
         widget=forms.Select(attrs={'class': 'form-control'}),
         label="Academic Year"
     )
+    unit_code = forms.ModelChoiceField(
+        queryset=Unit.objects.all(),  # Load all units
+        empty_label="Select Unit",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="Unit Code"
+    )
 
     class Meta:
         model = Complaint
-        fields = ['unit_code', 'academic_year', 'missing_mark', 'description']
+        fields = ['unit_code', 'academic_year', 'missing_mark', 'description', 'exam_date']
         widgets = {
-            'unit_code': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Select Unit'}),
             'missing_mark': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Select Missing Mark'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Describe the Issue', 'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):
-        student = kwargs.pop('student', None)
-        super(PostComplaintForm, self).__init__(*args, **kwargs)
+        self.student = kwargs.pop('student', None)  # Pop 'student' out of kwargs if provided
+        super().__init__(*args, **kwargs)
         
-        if student:
-            # Filter units related to student's course using UnitCourse model
-            self.fields['unit_code'].queryset = UnitCourse.objects.filter(course_code=student.course_code).values_list('unit_code', flat=True)
-        
-        # Load `missing_mark` choices directly from model
+        # Load `missing_mark` choices from model
         self.fields['missing_mark'].choices = Complaint._meta.get_field('missing_mark').choices
 
     def generate_complaint_code(self):
@@ -102,10 +108,16 @@ class PostComplaintForm(forms.ModelForm):
             letters = ''.join(random.choices(string.ascii_uppercase, k=3))
             numbers = ''.join(random.choices(string.digits, k=3))
             code = letters + numbers
-
-            # Ensure code uniqueness
             if not Complaint.objects.filter(complaint_code=code).exists():
                 return code
+
+    def save(self, commit=True):
+        if not self.instance.complaint_code:
+            self.instance.complaint_code = self.generate_complaint_code()
+        return super().save(commit=commit)
+
+
+
 
     
 

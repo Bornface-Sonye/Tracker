@@ -19,7 +19,7 @@
             </div>
             <ul class="list-unstyled ps-3">
                 <li class="mb-3">
-                    <a href="{% url 'lecturer-dashboard' %}" class="menu-link">
+                    <a href="{% url 'exam-dashboard' %}" class="menu-link">
                         <i class="mdi mdi-home"></i> <span class="menu-text">Home</span>
                     </a>
                 </li>
@@ -54,10 +54,10 @@
                 </li>
                 <!-- Nominal Roll Section -->
                 <li class="mb-3">
-                    <a href="#nominalRollSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <a href="#responsesSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <i class="mdi mdi-book"></i> <span class="menu-text">Responses</span>
                     </a>
-                    <ul class="collapse list-unstyled ps-3 submenu" id="nominalRollSubmenu">
+                    <ul class="collapse list-unstyled ps-3 submenu" id="responsesSubmenu">
                         <li><a href="#" class="load-link" data-url="{% url 'student-responses' %}"><i class="mdi mdi-link"></i> <span class="link-text">To Your Students</span></a></li>
                     </ul>
                 </li>

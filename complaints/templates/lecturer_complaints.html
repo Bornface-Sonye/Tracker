@@ -59,11 +59,11 @@
     <h1>Overdue Complaints</h1>
     
     {% if overdue_complaints %}
+        <!-- Complaints Table -->
+        <h2>Complaint Details</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Lecturer Email</th>
-                    <th>Lecturer Phone</th>
                     <th>Unit Code</th>
                     <th>Complaint Code</th>
                     <th>Reg No</th>
@@ -73,9 +73,7 @@
             <tbody>
                 {% for complaint in overdue_complaints %}
                     <tr>
-                        <td>{{ complaint.unit_code.lec_no.email_address }}</td>
-                        <td>{{ complaint.unit_code.lec_no.phone_number }}</td>
-                        <td>{{ complaint.unit_code.unit_code }}</td>
+                        <td>{{ complaint.unit_code }}</td>
                         <td>{{ complaint.complaint_code }}</td>
                         <td>{{ complaint.reg_no.reg_no }}</td>
                         <td>{{ complaint.academic_year.academic_year }}</td>
@@ -83,7 +81,26 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- Lecturers Contact Information Table -->
+        <h2>Lecturer Contact Information</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Lecturer Email</th>
+                    <th>Lecturer Phone</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lecturer in overdue_lecturers %}
+                    <tr>
+                        <td>{{ lecturer.email_address }}</td>
+                        <td>{{ lecturer.phone_number }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
         <p>No overdue complaints found.</p>
     {% endif %}
-    {% endblock %}
+{% endblock %}
