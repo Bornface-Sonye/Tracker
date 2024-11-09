@@ -275,6 +275,7 @@ class PostComplaint(View):
         return render(request, 'post_complaint.html', {'form': form, 'student': student})
 
 
+
 class ComplaintsView(ListView):
     template_name = 'complaints_list.html'
     context_object_name = 'complaints'
@@ -296,14 +297,10 @@ class ComplaintsView(ListView):
         academic_years = lecturer_units.values_list('academic_year', flat=True)
 
         # Query complaints related to the lecturer's units and academic years
-        # and filter to only those with response="No"
-        complaints = Complaint.objects.filter(
-            unit_code__in=unit_codes,
-            academic_year__in=academic_years,
-            response='No'  # Only complaints that have not been responded to
-        )
+        complaints = Complaint.objects.filter(unit_code__in=unit_codes, academic_year__in=academic_years)
 
         return render(request, self.template_name, {'complaints': complaints})
+
 
 class ResponseView(FormView):
     template_name = 'response_form.html'
@@ -343,9 +340,9 @@ class ResponseView(FormView):
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Wrap save and update operations in a transaction
+        # Wrap save and delete operations in a transaction
         with transaction.atomic():
-            # Create and save the response instance
+            # Create response instance but don't save it yet
             response = form.save(commit=False)
             response.response_code = self.generate_response_code()
             response.complaint_code = complaint
@@ -353,20 +350,20 @@ class ResponseView(FormView):
             response.reg_no = complaint.reg_no
             response.unit_code = complaint.unit_code
             response.date = timezone.now()
-            response.save()
 
-            # Update the complaint's response field to "Yes"
-            complaint.response = 'Yes'
-            complaint.save()
+            # Save the response instance
+            response.save()
+            
+            # Delete the complaint after saving the response
+            complaint.delete()
 
         # Add a success message
-        messages.success(self.request, 'Response saved successfully')
-
+        messages.success(self.request, 'Responses saved successfully.')
+       
         return redirect(reverse('complaints'))
 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
-
 
 
 class LoadNominalRollView(View):
