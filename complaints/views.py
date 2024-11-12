@@ -312,6 +312,7 @@ class ComplaintsView(ListView):
         # Render the complaints in the template
         return render(request, self.template_name, {'complaints': complaints})
 
+
 class ResponseView(FormView):
     template_name = 'response_form.html'
     form_class = ResponseForm
@@ -632,7 +633,7 @@ class NominalRollListView(ListView):
         context['academic_years'] = AcademicYear.objects.all()
         return context
 
-class LecturerOverdueComplaintsView(View): 
+class LecturerOverdueComplaintsView(View):
     def get(self, request):
         # Access the logged-in user's username from the session
         username = request.session.get('username')
@@ -640,31 +641,44 @@ class LecturerOverdueComplaintsView(View):
             return redirect('login')  # Redirect to login if username is not in session
 
         try:
-            # Get the COD's department and associated lecturers
+            # Get the COD's department
             cod_lecturer = Lecturer.objects.get(username=username)
             department_lecturers = Lecturer.objects.filter(dep_code=cod_lecturer.dep_code)
 
             # Retrieve units taught by lecturers in the department
             lecturer_units = LecturerUnit.objects.filter(lec_no__in=department_lecturers)
             department_unit_codes = lecturer_units.values_list('unit_code', flat=True)
+            department_course_codes = lecturer_units.values_list('course_code', flat=True)
+            department_academic_years = lecturer_units.values_list('academic_year', flat=True)
 
             # Calculate the time threshold for overdue complaints (more than 24 hours)
             overdue_threshold = timezone.now() - timedelta(hours=24)
 
-            # Retrieve overdue complaints related to the specific units
+            # Retrieve overdue complaints related to the department's unit codes
             overdue_complaints = Complaint.objects.filter(
                 date__lt=overdue_threshold,
-                unit_code__in=department_unit_codes
+                unit_code__in=department_unit_codes,
+                academic_year__in=department_academic_years
             ).select_related('reg_no', 'academic_year', 'unit_code')  # Optimize with select_related
 
-            # Get lecturer numbers associated with the overdue unit codes
-            lecturer_numbers = lecturer_units.filter(
-                unit_code__in=overdue_complaints.values_list('unit_code', flat=True)
+            # Extract reg_nos, unit codes, and academic years from the overdue complaints
+            reg_nos = overdue_complaints.values_list('reg_no', flat=True)
+            unit_codes = overdue_complaints.values_list('unit_code', flat=True)
+            academic_years = overdue_complaints.values_list('academic_year', flat=True)
+
+            # Get all course codes associated with the students in overdue complaints
+            student_courses = Student.objects.filter(reg_no__in=reg_nos).values_list('course_code', flat=True).distinct()
+
+            # Retrieve lec_no based on unit codes, academic years, and course codes
+            relevant_lecturer_units = LecturerUnit.objects.filter(
+                unit_code__in=unit_codes,
+                academic_year__in=academic_years,
+                course_code__in=student_courses
             ).values_list('lec_no', flat=True).distinct()
 
-            # Retrieve lecturers details who are associated with overdue complaints
+            # Retrieve lecturers with relevant lec_no to the complaints
             overdue_lecturers = Lecturer.objects.filter(
-                lec_no__in=lecturer_numbers
+                lec_no__in=relevant_lecturer_units
             ).only('phone_number', 'email_address')
 
             # Prepare context data
@@ -698,22 +712,32 @@ class StudentOverdueComplaintsView(View):
                 date__lt=overdue_threshold
             ).select_related('reg_no', 'unit_code', 'academic_year')  # Optimize queries
 
-            lecturer_units = LecturerUnit.objects.all()
+            #lecturer_units = LecturerUnit.objects.all()
             
-            # Get lecturer numbers associated with the overdue unit codes
-            lecturer_numbers = lecturer_units.filter(
-                unit_code__in=overdue_complaints.values_list('unit_code', flat=True)
+           # Extract reg_nos, unit codes, and academic years from the overdue complaints
+            reg_nos = overdue_complaints.values_list('reg_no', flat=True)
+            unit_codes = overdue_complaints.values_list('unit_code', flat=True)
+            academic_years = overdue_complaints.values_list('academic_year', flat=True)
+
+            # Get all course codes associated with the students in overdue complaints
+            student_courses = Student.objects.filter(reg_no__in=reg_nos).values_list('course_code', flat=True).distinct()
+
+            # Retrieve lec_no based on unit codes, academic years, and course codes
+            relevant_lecturer_units = LecturerUnit.objects.filter(
+                unit_code__in=unit_codes,
+                academic_year__in=academic_years,
+                course_code__in=student_courses
             ).values_list('lec_no', flat=True).distinct()
 
-            # Retrieve lecturers details who are associated with overdue complaints
+            # Retrieve lecturers with relevant lec_no to the complaints
             overdue_lecturers = Lecturer.objects.filter(
-                lec_no__in=lecturer_numbers
+                lec_no__in=relevant_lecturer_units
             ).only('phone_number', 'email_address')
 
-            # Prepare context for rendering
+            # Prepare context data
             context = {
                 'overdue_complaints': overdue_complaints,
-                'overdue_lecturers': overdue_lecturers,  # Pass lecturer details to template
+                'overdue_lecturers': overdue_lecturers,
             }
             return render(request, 'overdue_student_complaints.html', context)
 
