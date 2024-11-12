@@ -6,7 +6,6 @@ School, Department, Course, Student, Lecturer, Unit, NominalRoll, UnitCourse,
 Response, LecturerUnit, Result, Complaint, System_User, AcademicYear, Payment
 )
 
-
 class SignUpForm(forms.ModelForm):
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password', 'class': 'form-control'})
@@ -64,11 +63,6 @@ class StudentRegNoForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': 'Enter Registration Number'})
     )
 
-from django import forms
-from .models import Complaint, AcademicYear, Unit
-import random
-import string
-
 class PostComplaintForm(forms.ModelForm):
     exam_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -116,12 +110,6 @@ class PostComplaintForm(forms.ModelForm):
             self.instance.complaint_code = self.generate_complaint_code()
         return super().save(commit=commit)
 
-
-
-
-    
-
-
 class ResponseForm(forms.ModelForm):
     class Meta:
         model = Response
@@ -148,11 +136,6 @@ class ResponseForm(forms.ModelForm):
 
         return cleaned_data
 
-
-
-
 class UploadFileForm(forms.Form):
     file = forms.FileField(label='Select a CSV or Excel file')
-
-
-
+    

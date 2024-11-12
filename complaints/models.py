@@ -62,6 +62,7 @@ class Lecturer(models.Model):
 class Unit(models.Model):
     unit_code = models.CharField(primary_key=True, unique=True, max_length=20, help_text="Please Enter Unit Code")
     unit_name = models.CharField(max_length=200, help_text="Please Enter Unit Name")
+    dep_code = models.ForeignKey(Department, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.unit_code}"
@@ -86,6 +87,7 @@ class LecturerUnit(models.Model):
     unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
     lec_no = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
+    course_code = models.ForeignKey(Course, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.lec_no}"
