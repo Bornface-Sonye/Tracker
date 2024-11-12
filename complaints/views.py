@@ -11,6 +11,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from django.db import transaction
+from django.db import IntegrityError
 
 from .utils import SubscriptionManager, PaymentProcessor
 import requests  # For M-Pesa API calls
@@ -122,14 +123,10 @@ class LoginView(View):
         # Check if the username is in the lecturer email format
         return bool(re.match(r'^[a-zA-Z0-9]{1,15}@mmust\.ac\.ke$', username))
 
-
-
 class LogoutView(View):
     def get(self, request, *args, **kwargs):
         logout(request)  # Use logout directly
         return redirect('login')  # Redirect to the login page or another appropriate page
-
-
 
 
 class Lecturer_DashboardView(View):
@@ -160,8 +157,7 @@ class Lecturer_DashboardView(View):
 
         # Pass the full context to the template
         return render(request, 'lecturer_dashboard.html', context)
-
-    
+  
 class COD_DashboardView(View):
     def get(self, request):
         units = Unit.objects.all()
@@ -190,8 +186,6 @@ class COD_DashboardView(View):
 
         # Pass the full context to the template
         return render(request, 'cod_dashboard.html', context)
-
-
 
 class Exam_DashboardView(View):
     def get(self, request):
@@ -240,8 +234,6 @@ class StudentRegNo(View):
                 return render(request, 'student_reg_no.html', {'form': form})
         return render(request, 'student_reg_no.html', {'form': form})
 
-from django.db import IntegrityError
-
 class PostComplaint(View):
     def get(self, request):
         reg_no = request.session.get('registration_number')
@@ -287,10 +279,6 @@ class PostComplaint(View):
         messages.error(request, "Failed to post complaint. Please check the details and try again.")
         return render(request, 'post_complaint.html', {'form': form, 'student': student})
 
-
-
-
-
 class ComplaintsView(ListView):
     template_name = 'complaints_list.html'
     context_object_name = 'complaints'
@@ -315,9 +303,6 @@ class ComplaintsView(ListView):
         complaints = Complaint.objects.filter(unit_code__in=unit_codes, academic_year__in=academic_years)
 
         return render(request, self.template_name, {'complaints': complaints})
-
-
-from django.db import IntegrityError
 
 class ResponseView(FormView):
     template_name = 'response_form.html'
@@ -388,8 +373,6 @@ class ResponseView(FormView):
 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
-
-
 
 class LoadNominalRollView(View):
     def get(self, request):
@@ -567,7 +550,6 @@ class LoadResultView(View):
 
         return render(request, 'load_result.html', {'form': form})
 
-
 class ResultListView(ListView):
     model = Result
     template_name = 'result_list.html'
@@ -642,12 +624,6 @@ class NominalRollListView(ListView):
         context['academic_years'] = AcademicYear.objects.all()
         return context
 
-from django.utils import timezone
-from datetime import timedelta
-from django.shortcuts import render, redirect
-from django.views import View
-from .models import Lecturer, LecturerUnit, Complaint
-
 class LecturerOverdueComplaintsView(View): 
     def get(self, request):
         # Access the logged-in user's username from the session
@@ -693,14 +669,6 @@ class LecturerOverdueComplaintsView(View):
         except Lecturer.DoesNotExist:
             return render(request, 'lecturer_complaints.html', {'error': 'Lecturer not found.'})
 
-
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from datetime import timedelta
-from django.views import View
-from .models import Complaint, Lecturer, Unit, LecturerUnit
-
 class StudentOverdueComplaintsView(View):
     def get(self, request):
         # Access the logged-in user's username from the session
@@ -743,7 +711,6 @@ class StudentOverdueComplaintsView(View):
 
         except Lecturer.DoesNotExist:
             return render(request, 'overdue_student_complaints.html', {'error': 'Lecturer not found.'})
-
 
 class ResponsesView(View):
     def get(self, request):
