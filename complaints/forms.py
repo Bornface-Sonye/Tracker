@@ -2,7 +2,7 @@ from django import forms
 import random
 import string
 from .models import (
-School, Department, Course, Student, Lecturer, Unit, NominalRoll, UnitCourse,
+School, Department, Course, Student, Lecturer, Unit, NominalRoll,
 Response, LecturerUnit, Result, Complaint, System_User, AcademicYear, Payment
 )
 

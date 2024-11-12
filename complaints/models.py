@@ -66,23 +66,14 @@ class Unit(models.Model):
     
     def __str__(self):
         return f"{self.unit_code}"
-    
-class UnitCourse(models.Model):
-    unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    course_code = models.ForeignKey(Course, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"{self.unit_code} - {self.course_code}"
-    
-    
+   
 class AcademicYear(models.Model):
     year_id = models.AutoField(primary_key=True)
     academic_year = models.CharField(max_length=200, help_text="Please Enter Academic Year")
     
     def __str__(self):
         return f"{self.academic_year}"
-    
-    
+     
 class LecturerUnit(models.Model):
     unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
     lec_no = models.ForeignKey(Lecturer, on_delete=models.CASCADE)

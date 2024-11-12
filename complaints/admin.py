@@ -1,6 +1,6 @@
 # complaints/admin.py
 from django.contrib import admin
-from .models import ( School, Department, Course, Student, Lecturer, Unit, NominalRoll, UnitCourse,
+from .models import ( School, Department, Course, Student, Lecturer, Unit, NominalRoll,
 Response, LecturerUnit, Result, Complaint, System_User, AcademicYear, Payment
 )
 
@@ -14,7 +14,6 @@ admin.site.register(Course)
 admin.site.register(Student)
 admin.site.register(Lecturer)
 admin.site.register(Unit)
-admin.site.register(UnitCourse)
 admin.site.register(LecturerUnit)
 admin.site.register(System_User)
 admin.site.register(AcademicYear)

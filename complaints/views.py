@@ -32,7 +32,7 @@ import uuid
 from django.contrib import messages
 
 from .models import ( 
-School, Department, Course, Student, Lecturer, Unit, NominalRoll, UnitCourse, 
+School, Department, Course, Student, Lecturer, Unit, NominalRoll, 
 Response, LecturerUnit, Result, Complaint, System_User, Payment, AcademicYear
 )
 
@@ -287,21 +287,29 @@ class ComplaintsView(ListView):
         username = request.session.get('username')
         if not username:
             return redirect('login')  # Redirect to login if username is not in session
-        
+
         # Retrieve the lecturer based on the username
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Get the units and academic years associated with the lecturer
-        lec_no = lecturer.lec_no
-        lecturer_units = LecturerUnit.objects.filter(lec_no=lec_no)
+        # Fetch the lecturer's units with academic years and course codes
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer.lec_no)
+        
+        # Extract unit codes, course codes, and academic years into sets for optimized querying
+        unit_codes = lecturer_units.values_list('unit_code', flat=True).distinct()
+        academic_years = lecturer_units.values_list('academic_year', flat=True).distinct()
+        course_codes = lecturer_units.values_list('course_code', flat=True).distinct()
+        
+        # Fetch student registration numbers associated with the courses taught by the lecturer
+        reg_nos = Student.objects.filter(course_code__in=course_codes).values_list('reg_no', flat=True)
 
-        # Get the unit codes and academic years
-        unit_codes = lecturer_units.values_list('unit_code', flat=True)
-        academic_years = lecturer_units.values_list('academic_year', flat=True)
+        # Query complaints associated with the lecturer's units, academic years, and student registration numbers
+        complaints = Complaint.objects.filter(
+            reg_no__in=reg_nos,
+            unit_code__in=unit_codes,
+            academic_year__in=academic_years
+        )
 
-        # Query complaints related to the lecturer's units and academic years
-        complaints = Complaint.objects.filter(unit_code__in=unit_codes, academic_year__in=academic_years)
-
+        # Render the complaints in the template
         return render(request, self.template_name, {'complaints': complaints})
 
 class ResponseView(FormView):
