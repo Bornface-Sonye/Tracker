@@ -34,9 +34,9 @@ urlpatterns = [
     path('responses/', ResponsesView.as_view(), name='responses'),
     path('student-responses/', StudentResponsesView.as_view(), name='student-responses'),    
     
-    path('approve-response/', ApproveResponseView.as_view(), name='approve_response'),
+    path('approve-response/', ApproveResponseView.as_view(), name='approve-response'),
     
     path('approved-responses/', StudentApprovedResponsesView.as_view(), name='approved-responses'),
     
-    path('record-response/', RecordedResponseView.as_view(), name='record_response'),
+    path('record-response/', RecordedResponseView.as_view(), name='record-response'),
 ]
