@@ -20,7 +20,7 @@
             <ul class="list-unstyled ps-3">
                 <li class="mb-3">
                     <a href="{% url 'cod-dashboard' %}" class="menu-link">
-                        <i class="mdi mdi-home"></i> <span class="menu-text">Home</span>
+                        <i class="mdi mdi-view-dashboard"></i> <span class="menu-text">Home</span>
                     </a>
                 </li>
                 <!-- Complaints Section -->
@@ -35,24 +35,24 @@
                 <!-- Results Section -->
                 <li class="mb-3">
                     <a href="#resultsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <i class="mdi mdi-book"></i> <span class="menu-text">Overdue Complaints.</span>
+                        <i class="mdi mdi-clock-alert"></i> <span class="menu-text">Overdue Complaints</span>
                     </a>
                     <ul class="collapse list-unstyled ps-3 submenu" id="resultsSubmenu">
-                        <li><a href="#" class="load-link" data-url="{% url 'overdue-lecturer-complaints' %}"><i class="mdi mdi-link"></i> <span class="link-text">To Your Lecturers</span></a></li>
-                        <li><a href="#" class="load-link" data-url="{% url 'overdue-student-complaints' %}"><i class="mdi mdi-link"></i> <span class="link-text">From Your Students</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'overdue-lecturer-complaints' %}"><i class="mdi mdi-alert-circle"></i> <span class="link-text">Complaints To Your Lecturers</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'overdue-student-complaints' %}"><i class="mdi mdi-message-text"></i> <span class="link-text">From Your Students</span></a></li>
                     </ul>
                 </li>
                 <!-- Nominal Roll Section -->
                 <li class="mb-3">
                     <a href="#nominalRollSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <i class="mdi mdi-book"></i> <span class="menu-text">Responses</span>
+                        <i class="mdi mdi-comment-check"></i> <span class="menu-text">Responses</span>
                     </a>
                     <ul class="collapse list-unstyled ps-3 submenu" id="nominalRollSubmenu">
-                        <li><a href="#" class="load-link" data-url="{% url 'responses' %}"><i class="mdi mdi-link"></i> <span class="link-text">From Your Lecturers</span></a></li>
-                        <li><a href="#" class="load-link" data-url="{% url 'student-responses' %}"><i class="mdi mdi-link"></i> <span class="link-text">To Your Students</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'responses' %}"><i class="mdi mdi-account-tie"></i> <span class="link-text">From Your Lecturers</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'student-responses' %}"><i class="mdi mdi-account-school"></i> <span class="link-text">To Your Students</span></a></li>
                     </ul>
                 </li>
-                <a href="{% url 'logout' %}" class="nav-item"><i class="bi bi-box-arrow-right icon-logout"></i> Logout</a>
+                <a href="{% url 'logout' %}" class="nav-item"><i class="mdi mdi-exit-to-app"></i><span class="menu-text">Logout</a>
             </ul>
         </aside>
 

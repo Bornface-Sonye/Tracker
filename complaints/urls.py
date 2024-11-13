@@ -3,7 +3,8 @@ from . import views
 from .views import (
     SignUpView, LoginView, COD_DashboardView, Exam_DashboardView, Lecturer_DashboardView, LogoutView, StudentRegNo,
     ComplaintsView, ResponseView, LoadNominalRollView, LoadResultView, LecturerOverdueComplaintsView, PostComplaint,
-    StudentOverdueComplaintsView, ResponsesView, StudentResponsesView, NominalRollListView, ResultListView
+    StudentOverdueComplaintsView, ResponsesView, StudentResponsesView, NominalRollListView, ResultListView,
+    StudentApprovedResponsesView, RecordedResponseView, ApproveResponseView
 )
 
 urlpatterns = [
@@ -31,5 +32,11 @@ urlpatterns = [
     path('overdue-student-complaints/', StudentOverdueComplaintsView.as_view(), name='overdue-student-complaints'),
     
     path('responses/', ResponsesView.as_view(), name='responses'),
-    path('student-responses/', StudentResponsesView.as_view(), name='student-responses'),
+    path('student-responses/', StudentResponsesView.as_view(), name='student-responses'),    
+    
+    path('approve-response/', ApproveResponseView.as_view(), name='approve_response'),
+    
+    path('approved-responses/', StudentApprovedResponsesView.as_view(), name='approved-responses'),
+    
+    path('record-response/', RecordedResponseView.as_view(), name='record_response'),
 ]

@@ -1,4 +1,4 @@
-{% extends 'cod_base_dashboard.html' %}
+{% extends 'exam_base_dashboard.html' %}
 
 {% block content %}
     <style>
@@ -61,39 +61,7 @@
                 white-space: nowrap;
             }
         }
-    </style>
-
-    <h2>Responses Information</h2>
-    {% if student_responses %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Responder (Lecturer)</th>
-                    <th>Email</th>
-                    <th>Phone Number</th>
-                    <th>Response</th>
-                    <th>Reg No</th>
-                    <th>Unit Code</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for response in student_responses %}
-                    <tr>
-                        <td>{{ response.responder.first_name }} {{ response.responder.last_name }}</td>
-                        <td>{{ response.responder.email_address }}</td>
-                        <td>{{ response.responder.phone_number }}</td>
-                        <td>{{ response.response }}</td>
-                        <td>{{ response.reg_no.reg_no }}</td>
-                        <td>{{ response.unit_code.unit_code }}</td>
-                        <td>{{ response.date }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No responses found for students.</p>
-    {% endif %}
+    </style>         
     
     <h2>Result Information</h2>
     {% if student_responses %}
@@ -119,7 +87,7 @@
                         <td>{{ response.exam }}</td>
                         <td>{{ response.date }}</td>
                         <td>
-                            <button class="approve-btn" data-response-id="{{ response.id }}">Approve</button>
+                            <button class="record-btn" data-response-id="{{ response.id }}">Record</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -129,21 +97,21 @@
         <p>No Results found for students.</p>
     {% endif %}
 
-    <div id="approveDialog" style="display:none;">
-        <p>Are you sure you want to approve this response?</p>
-        <button id="confirmApprove">Yes</button>
-        <button id="cancelApprove">No</button>
+    <div id="recordDialog" style="display:none;">
+        <p>Are you sure you want to record this response?</p>
+        <button id="confirmRecord">Yes</button>
+        <button id="cancelRecord">No</button>
     </div>
 
     <script>
-        document.querySelectorAll('.approve-btn').forEach(button => {
+        document.querySelectorAll('.record-btn').forEach(button => {
             button.addEventListener('click', function() {
                 var responseId = this.getAttribute('data-response-id');
-                var dialog = document.getElementById('approveDialog');
+                var dialog = document.getElementById('recordDialog');
                 dialog.style.display = 'block';
 
-                document.getElementById('confirmApprove').onclick = function() {
-                    fetch("{% url 'approve-response' %}", {
+                document.getElementById('confirmRecord').onclick = function() {
+                    fetch("{% url 'record-response' %}", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -163,7 +131,7 @@
                     dialog.style.display = 'none';
                 };
 
-                document.getElementById('cancelApprove').onclick = function() {
+                document.getElementById('cancelRecord').onclick = function() {
                     dialog.style.display = 'none';
                 };
             });

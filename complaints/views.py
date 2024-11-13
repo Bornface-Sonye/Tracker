@@ -16,6 +16,8 @@ from django.db import IntegrityError
 from .utils import SubscriptionManager, PaymentProcessor
 import requests  # For M-Pesa API calls
 
+from django.http import JsonResponse
+
 from django.db import models
 import re
 from django.db.models import DecimalField
@@ -32,7 +34,7 @@ import uuid
 from django.contrib import messages
 
 from .models import ( 
-School, Department, Course, Student, Lecturer, Unit, NominalRoll, 
+School, Department, Course, Student, Lecturer, Unit, NominalRoll, ApprovedResponse,
 Response, LecturerUnit, Result, Complaint, System_User, Payment, AcademicYear
 )
 
@@ -128,93 +130,185 @@ class LogoutView(View):
         logout(request)  # Use logout directly
         return redirect('login')  # Redirect to the login page or another appropriate page
 
-
 class Lecturer_DashboardView(View):
     def get(self, request):
-        units = Unit.objects.all()
-        courses = Course.objects.all()
-            
+        # Retrieve username from session
+        username = request.session.get('username')
+        if not username:
+            return redirect('login')  # Redirect to login if username is missing
+
+        # Get logged-in lecturer details
+        lecturer = Lecturer.objects.filter(username=username).first()
+        last_name = lecturer.last_name  # Add last name to context
+        user = System_User.objects.get(username=username)
+        if not lecturer:
+            return redirect('login')  # Redirect if no matching lecturer found
+        
+        department = lecturer.dep_code
+        
+        # Total students taking courses related to the lecturer's department
+        total_students = Student.objects.filter(
+            course_code__dep_code=lecturer.dep_code
+        ).count()
+
+        # Total lecturers within the same department
+        total_lecturers_in_department = Lecturer.objects.filter(
+            dep_code=lecturer.dep_code
+        ).count()
+
+        # Total units related to the lecturer from LecturerUnit model
+        total_units_for_lecturer = LecturerUnit.objects.filter(
+            lec_no=lecturer.lec_no
+        ).count()
+
+        # Filter complaints related to lecturer's unit codes, academic year, and course codes
+        lecturer_unit_codes = LecturerUnit.objects.filter(
+            lec_no=lecturer.lec_no
+        ).values_list('unit_code', flat=True)
+
+        related_complaints_count = Complaint.objects.filter(
+            unit_code__in=lecturer_unit_codes,
+            academic_year__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('academic_year', flat=True),
+            reg_no__course_code__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('course_code', flat=True)
+        ).count()
+
+        # Fetch all units and courses in the lecturer's department
+        units = Unit.objects.filter(dep_code=lecturer.dep_code)
+        courses = Course.objects.filter(dep_code=lecturer.dep_code)
+
+        # Pass calculated counts, units, and courses to the template
         context = {
+            'total_students': total_students,
+            'total_lecturers_in_department': total_lecturers_in_department,
+            'total_units_for_lecturer': total_units_for_lecturer,
+            'related_complaints_count': related_complaints_count,
+            'last_name': last_name,
+            'user': user,
             'units': units,
             'courses': courses,
         }
         
-        # Retrieve username from session
-        username = request.session.get('username')
-        if not username:
-            return redirect('login')  # Redirect to login if username is not in session
-            
-        try:
-            user = System_User.objects.get(username=username)
-            # Retrieve the lecturer based on the username
-            lecturer = Lecturer.objects.get(username=username)
-            context['last_name'] = lecturer.last_name  # Add last name to context
-        except (System_User.DoesNotExist, Lecturer.DoesNotExist):
-            return redirect('login')
-        
-        # Add the 'user' object to the context
-        context['user'] = user
-
-        # Pass the full context to the template
         return render(request, 'lecturer_dashboard.html', context)
-  
-class COD_DashboardView(View):
-    def get(self, request):
-        units = Unit.objects.all()
-        courses = Course.objects.all()
-            
-        context = {
-            'units': units,
-            'courses': courses,
-        }
-        
-        # Retrieve username from session
-        username = request.session.get('username')
-        if not username:
-            return redirect('login')  # Redirect to login if username is not in session
-            
-        try:
-            user = System_User.objects.get(username=username)
-            # Retrieve the lecturer based on the username
-            lecturer = Lecturer.objects.get(username=username)
-            context['last_name'] = lecturer.last_name  # Add last name to context
-        except (System_User.DoesNotExist, Lecturer.DoesNotExist):
-            return redirect('login')
-        
-        # Add the 'user' object to the context
-        context['user'] = user
-
-        # Pass the full context to the template
-        return render(request, 'cod_dashboard.html', context)
 
 class Exam_DashboardView(View):
     def get(self, request):
-        units = Unit.objects.all()
-        courses = Course.objects.all()
-            
+        # Retrieve username from session
+        username = request.session.get('username')
+        if not username:
+            return redirect('login')  # Redirect to login if username is missing
+
+        # Get logged-in lecturer details
+        lecturer = Lecturer.objects.filter(username=username).first()
+        last_name = lecturer.last_name  # Add last name to context
+        user = System_User.objects.get(username=username)
+        if not lecturer:
+            return redirect('login')  # Redirect if no matching lecturer found
+        
+        department = lecturer.dep_code
+        
+        # Total students taking courses related to the lecturer's department
+        total_students = Student.objects.filter(
+            course_code__dep_code=lecturer.dep_code
+        ).count()
+
+        # Total lecturers within the same department
+        total_lecturers_in_department = Lecturer.objects.filter(
+            dep_code=lecturer.dep_code
+        ).count()
+
+        # Total units related to the lecturer from LecturerUnit model
+        total_units_for_lecturer = LecturerUnit.objects.filter(
+            lec_no=lecturer.lec_no
+        ).count()
+
+        # Filter complaints related to lecturer's unit codes, academic year, and course codes
+        lecturer_unit_codes = LecturerUnit.objects.filter(
+            lec_no=lecturer.lec_no
+        ).values_list('unit_code', flat=True)
+
+        related_complaints_count = Complaint.objects.filter(
+            unit_code__in=lecturer_unit_codes,
+            academic_year__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('academic_year', flat=True),
+            reg_no__course_code__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('course_code', flat=True)
+        ).count()
+
+        # Fetch all units and courses in the lecturer's department
+        units = Unit.objects.filter(dep_code=lecturer.dep_code)
+        courses = Course.objects.filter(dep_code=lecturer.dep_code)
+
+        # Pass calculated counts, units, and courses to the template
         context = {
+            'total_students': total_students,
+            'total_lecturers_in_department': total_lecturers_in_department,
+            'total_units_for_lecturer': total_units_for_lecturer,
+            'related_complaints_count': related_complaints_count,
+            'last_name': last_name,
+            'user': user,
             'units': units,
             'courses': courses,
         }
         
+        return render(request, 'exam_dashboard.html', context)
+    
+class COD_DashboardView(View):
+    def get(self, request):
         # Retrieve username from session
         username = request.session.get('username')
         if not username:
-            return redirect('login')  # Redirect to login if username is not in session
-            
-        try:
-            user = System_User.objects.get(username=username)
-            # Retrieve the lecturer based on the username
-            lecturer = Lecturer.objects.get(username=username)
-            context['last_name'] = lecturer.last_name  # Add last name to context
-        except (System_User.DoesNotExist, Lecturer.DoesNotExist):
-            return redirect('login')
-        
-        # Add the 'user' object to the context
-        context['user'] = user
+            return redirect('login')  # Redirect to login if username is missing
 
-        # Pass the full context to the template
-        return render(request, 'exam_dashboard.html', context)
+        # Get logged-in lecturer details
+        lecturer = Lecturer.objects.filter(username=username).first()
+        last_name = lecturer.last_name  # Add last name to context
+        user = System_User.objects.get(username=username)
+        if not lecturer:
+            return redirect('login')  # Redirect if no matching lecturer found
+        
+        department = lecturer.dep_code
+        
+        # Total students taking courses related to the lecturer's department
+        total_students = Student.objects.filter(
+            course_code__dep_code=lecturer.dep_code
+        ).count()
+
+        # Total lecturers within the same department
+        total_lecturers_in_department = Lecturer.objects.filter(
+            dep_code=lecturer.dep_code
+        ).count()
+
+        # Total units related to the lecturer from LecturerUnit model
+        total_units_for_lecturer = LecturerUnit.objects.filter(
+            lec_no=lecturer.lec_no
+        ).count()
+
+        # Filter complaints related to lecturer's unit codes, academic year, and course codes
+        lecturer_unit_codes = LecturerUnit.objects.filter(
+            lec_no=lecturer.lec_no
+        ).values_list('unit_code', flat=True)
+
+        related_complaints_count = Complaint.objects.filter(
+            unit_code__in=lecturer_unit_codes,
+            academic_year__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('academic_year', flat=True),
+            reg_no__course_code__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('course_code', flat=True)
+        ).count()
+
+        # Fetch all units and courses in the lecturer's department
+        units = Unit.objects.filter(dep_code=lecturer.dep_code)
+        courses = Course.objects.filter(dep_code=lecturer.dep_code)
+
+        # Pass calculated counts, units, and courses to the template
+        context = {
+            'total_students': total_students,
+            'total_lecturers_in_department': total_lecturers_in_department,
+            'total_units_for_lecturer': total_units_for_lecturer,
+            'related_complaints_count': related_complaints_count,
+            'last_name': last_name,
+            'user': user,
+            'units': units,
+            'courses': courses,
+        }
+        
+        return render(request, 'cod_dashboard.html', context)
 
 class StudentRegNo(View):
     def get(self, request):
@@ -793,3 +887,84 @@ class StudentResponsesView(View):
 
         except Lecturer.DoesNotExist:
             return render(request, 'student_responses.html', {'error': 'Lecturer not found.'})
+
+class ApproveResponseView(View):
+    def post(self, request):
+        response_id = request.POST.get('response_id')
+        try:
+            # Retrieve the response instance
+            response = Response.objects.get(id=response_id)
+            # Create an ApprovedResponse entry
+            ApprovedResponse.objects.create(
+                reg_no=response.reg_no,
+                unit_code=response.unit_code,
+                cat=response.cat,
+                exam=response.exam,
+                date=response.date
+            )
+            # Delete the original response
+            response.delete()
+            return JsonResponse({'status': 'success'}, status=200)
+        except Response.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Response not found'}, status=404)
+
+class StudentApprovedResponsesView(View):
+    def get(self, request):
+        username = request.session.get('username')
+        if not username:
+            return redirect('login')  # Redirect to login if username is not in session
+
+        try:
+            # Get the COD's lecturer object
+            lecturer = Lecturer.objects.get(username=username)
+            department_code = lecturer.dep_code
+
+            # Query responses and loaded results for students in the COD's department
+            student_responses = ApprovedResponse.objects.filter(
+                reg_no__course_code__dep_code=department_code
+            ).select_related('reg_no', 'unit_code')
+
+
+            context = {
+                'student_responses': student_responses,
+            }
+            return render(request, 'student_responses_approved.html', context)
+
+        except Lecturer.DoesNotExist:
+            return render(request, 'student_responses_approved.html', {'error': 'Lecturer not found.'})
+        
+class RecordedResponseView(View):
+    def post(self, request):
+        response_id = request.POST.get('response_id')
+        try:
+            # Retrieve the response instance
+            response = ApprovedResponse.objects.get(id=response_id)
+
+            # Convert cat and exam marks to integers or set to 0 if invalid
+            cat = 0
+            if response.cat.isdigit():
+                cat = int(response.cat)
+                if not (0 <= cat <= 30):
+                    cat = 0  # Set to 0 if outside the valid range
+
+            exam = 0
+            if response.exam.isdigit():
+                exam = int(response.exam)
+                if not (0 <= exam <= 70):
+                    exam = 0  # Set to 0 if outside the valid range
+
+            # Now cat and exam are integers, safe to pass to the Result model
+            Result.objects.create(
+                reg_no=response.reg_no,
+                unit_code=response.unit_code,
+                cat=cat,  # cat is an integer now
+                exam=exam,  # exam is an integer now
+            )
+
+            # Delete the original response
+            response.delete()
+
+            return JsonResponse({'status': 'success'}, status=200)
+        except ApprovedResponse.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Response not found'}, status=404)
+
