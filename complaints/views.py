@@ -457,6 +457,7 @@ class ResponseView(FormView):
                 response.response_code = self.generate_response_code()
                 response.responder = lecturer
                 response.reg_no = complaint.reg_no
+                response.academic_year = complaint.academic_year
                 response.unit_code = complaint.unit_code
                 response.date = timezone.now()
 
@@ -898,6 +899,7 @@ class ApproveResponseView(View):
             ApprovedResponse.objects.create(
                 reg_no=response.reg_no,
                 unit_code=response.unit_code,
+                academic_year=response.academic_year,
                 cat=response.cat,
                 exam=response.exam,
                 date=response.date
@@ -957,6 +959,7 @@ class RecordedResponseView(View):
             Result.objects.create(
                 reg_no=response.reg_no,
                 unit_code=response.unit_code,
+                academic_year=response.academic_year,
                 cat=cat,  # cat is an integer now
                 exam=exam,  # exam is an integer now
             )

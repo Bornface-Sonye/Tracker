@@ -113,6 +113,7 @@ class NominalRoll(models.Model):
 class Result(models.Model):
     unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
     reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
     cat = models.IntegerField(
         null=True, 
         blank=True, 
@@ -209,6 +210,7 @@ class Response(models.Model):
     )
     reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
     unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
     cat = models.CharField(max_length=3, default='-', help_text="Enter Cat Mark or -")  # Now non-nullable with default
     exam = models.CharField(max_length=3, default='-', help_text="Enter Exam Mark or -")  # Required field
     date = models.DateField(default=timezone.now)
@@ -244,6 +246,7 @@ class Response(models.Model):
 class ApprovedResponse(models.Model):
     reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
     unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
     cat = models.CharField(max_length=3, default='-', help_text="Enter Cat Mark or -")  # Now non-nullable with default
     exam = models.CharField(max_length=3, default='-', help_text="Enter Exam Mark or -")  # Required field
     date = models.DateField(default=timezone.now)
@@ -252,7 +255,7 @@ class ApprovedResponse(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['reg_no', 'unit_code'],
-                name='unique_response_per_student_unit'
+                name='unique_approved_response_per_student_unit'
             )
         ]
 
