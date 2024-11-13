@@ -48,6 +48,11 @@
             <!-- Sidebar Card -->
             <div class="sidebar-card">
                 <div class="sidebar-header">
+                    <p class="stat-item">Department: {{ department_name }}</p>
+                </div>
+            </div>
+            <div class="sidebar-card">
+                <div class="sidebar-header">
                     Welcome  Back !!!
                 </div>
                 <div class="sidebar-header">
@@ -57,7 +62,6 @@
                 <p class="stat-item">Total Lecturers: {{ total_lecturers_in_department }}</p>
                 <p class="stat-item">Total Units: {{ total_units_for_lecturer }}</p>
                 <p class="stat-item">Total Complaints: {{ related_complaints_count }}</p>
-                <p class="stat-item">Department: {{ department.dep_name }}</p>
             </div>
         </div>
 
@@ -73,7 +77,7 @@
                             <h5>Units</h5>
                             <ul class="list-group">
                                 {% for unit in units %}
-                                <li class="list-group-item">{{ unit.unit_name }}</li>
+                                <li class="list-group-item">{{ unit.unit_code.unit_name }}</li>
                                 {% endfor %}
                             </ul>
                         </div>

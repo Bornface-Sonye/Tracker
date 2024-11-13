@@ -144,7 +144,7 @@ class Lecturer_DashboardView(View):
         if not lecturer:
             return redirect('login')  # Redirect if no matching lecturer found
         
-        department = lecturer.dep_code
+        department_name = lecturer.dep_code.dep_name
         
         # Total students taking courses related to the lecturer's department
         total_students = Student.objects.filter(
@@ -171,9 +171,16 @@ class Lecturer_DashboardView(View):
             academic_year__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('academic_year', flat=True),
             reg_no__course_code__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('course_code', flat=True)
         ).count()
+        
+        
+        # Get all LecturerUnit instances for the lecturer
+        units = LecturerUnit.objects.filter(lec_no=lecturer.lec_no)
 
-        # Fetch all units and courses in the lecturer's department
-        units = Unit.objects.filter(dep_code=lecturer.dep_code)
+        # Now, if you want to access the name of each unit, you can loop through the instances:
+        unit_names = [unit.unit_code.unit_name for unit in total_units_for_lecturer]
+
+
+        # Fetch all courses in the lecturer's department
         courses = Course.objects.filter(dep_code=lecturer.dep_code)
 
         # Pass calculated counts, units, and courses to the template
@@ -186,6 +193,7 @@ class Lecturer_DashboardView(View):
             'user': user,
             'units': units,
             'courses': courses,
+            'department_name': department_name,
         }
         
         return render(request, 'lecturer_dashboard.html', context)
@@ -204,7 +212,7 @@ class Exam_DashboardView(View):
         if not lecturer:
             return redirect('login')  # Redirect if no matching lecturer found
         
-        department = lecturer.dep_code
+        department_name = lecturer.dep_code.dep_name
         
         # Total students taking courses related to the lecturer's department
         total_students = Student.objects.filter(
@@ -231,9 +239,11 @@ class Exam_DashboardView(View):
             academic_year__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('academic_year', flat=True),
             reg_no__course_code__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('course_code', flat=True)
         ).count()
+        
+        # Get all LecturerUnit instances for the lecturer
+        units = LecturerUnit.objects.filter(lec_no=lecturer.lec_no)
 
-        # Fetch all units and courses in the lecturer's department
-        units = Unit.objects.filter(dep_code=lecturer.dep_code)
+        # Fetch all courses in the lecturer's department
         courses = Course.objects.filter(dep_code=lecturer.dep_code)
 
         # Pass calculated counts, units, and courses to the template
@@ -246,6 +256,7 @@ class Exam_DashboardView(View):
             'user': user,
             'units': units,
             'courses': courses,
+            'department_name': department_name,
         }
         
         return render(request, 'exam_dashboard.html', context)
@@ -264,7 +275,7 @@ class COD_DashboardView(View):
         if not lecturer:
             return redirect('login')  # Redirect if no matching lecturer found
         
-        department = lecturer.dep_code
+        department_name = lecturer.dep_code.dep_name
         
         # Total students taking courses related to the lecturer's department
         total_students = Student.objects.filter(
@@ -291,9 +302,11 @@ class COD_DashboardView(View):
             academic_year__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('academic_year', flat=True),
             reg_no__course_code__in=LecturerUnit.objects.filter(lec_no=lecturer).values_list('course_code', flat=True)
         ).count()
+        
+        # Get all LecturerUnit instances for the lecturer
+        units = LecturerUnit.objects.filter(lec_no=lecturer.lec_no)
 
-        # Fetch all units and courses in the lecturer's department
-        units = Unit.objects.filter(dep_code=lecturer.dep_code)
+        # Fetch all courses in the lecturer's department
         courses = Course.objects.filter(dep_code=lecturer.dep_code)
 
         # Pass calculated counts, units, and courses to the template
@@ -306,6 +319,7 @@ class COD_DashboardView(View):
             'user': user,
             'units': units,
             'courses': courses,
+            'department_name': department_name,
         }
         
         return render(request, 'cod_dashboard.html', context)
