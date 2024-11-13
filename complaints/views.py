@@ -176,9 +176,6 @@ class Lecturer_DashboardView(View):
         # Get all LecturerUnit instances for the lecturer
         units = LecturerUnit.objects.filter(lec_no=lecturer.lec_no)
 
-        # Now, if you want to access the name of each unit, you can loop through the instances:
-        unit_names = [unit.unit_code.unit_name for unit in total_units_for_lecturer]
-
 
         # Fetch all courses in the lecturer's department
         courses = Course.objects.filter(dep_code=lecturer.dep_code)

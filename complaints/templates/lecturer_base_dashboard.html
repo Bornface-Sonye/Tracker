@@ -13,47 +13,48 @@
 <body>
     <div class="dashboard-container d-flex">
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar border-end">
+        <aside id="sidebar" class="sidebar border-end" style="height: 100vh; overflow-y: auto;">
             <div class="sidebar-logo text-center py-3">
-                <img src="{% static 'img/mmust-logo.png' %}" alt="MMUST Logo" class="connect-logo">
+                <img src="{% static 'img/mmust-logo.png' %}" alt="MMUST Logo" class="mmust-logo">
             </div>
             <ul class="list-unstyled ps-3">
                 <li class="mb-3">
                     <a href="{% url 'lecturer-dashboard' %}" class="menu-link">
-                        <i class="mdi mdi-view-dashboard"></i> <span class="menu-text"> Home</span>
+                        <i class="mdi mdi-view-dashboard icon-home" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="menu-text"> Home</span>
                     </a>
                 </li>
                 <!-- Complaints Section -->
                 <li class="mb-3">
                     <a href="#complaintSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <i class="mdi mdi-alert-circle"></i> <span class="menu-text"> Complaints</span>
+                        <i class="mdi mdi-alert-circle icon-complaints" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="menu-text"> Complaints</span>
                     </a>
                     <ul class="collapse list-unstyled ps-3 submenu" id="complaintSubmenu">
-                        <li><a href="#" class="load-link" data-url="{% url 'complaints' %}"><i class="mdi mdi-eye-plus"></i> <span class="link-text">View Complaint</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'complaints' %}"><i class="mdi mdi-file-document icon-complaints-link" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="link-text">View Complaint</span></a></li>
                     </ul>
                 </li>
                 <!-- Results Section -->
                 <li class="mb-3">
                     <a href="#resultsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <i class="mdi mdi-clipboard-list"></i> <span class="menu-text">Results</span>
+                        <i class="mdi mdi-clipboard-list icon-results" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="menu-text">Results</span>
                     </a>
                     <ul class="collapse list-unstyled ps-3 submenu" id="resultsSubmenu">
-                        <li><a href="#" class="load-link" data-url="{% url 'load-result' %}"><i class="mdi mdi-file-document"></i> <span class="link-text">Post Result</span></a></li>
-                        <li><a href="#" class="load-link" data-url="{% url 'result' %}"><i class="mdi mdi-file-eye"></i> <span class="link-text">View Result</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'load-result' %}"><i class="mdi mdi-file-document icon-load-result" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="link-text">Post Result</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'result' %}"><i class="mdi mdi-file-eye icon-view-result" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="link-text">View Result</span></a></li>
                     </ul>
                 </li>
                 <!-- Nominal Roll Section -->
                 <li class="mb-3">
                     <a href="#nominalRollSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <i class="mdi mdi-format-list-bulleted"></i> <span class="menu-text">Nominal Roll</span>
+                        <i class="mdi mdi-format-list-bulleted icon-nominal-roll" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="menu-text">Nominal Roll</span>
                     </a>
                     <ul class="collapse list-unstyled ps-3 submenu" id="nominalRollSubmenu">
-                        <li><a href="#" class="load-link" data-url="{% url 'load-nominal-roll' %}"><i class="mdi mdi-file-document"></i> <span class="link-text">Post Nominal Roll</span></a></li>
-                        <li><a href="#" class="load-link" data-url="{% url 'nominal-roll' %}"><i class="mdi mdi-file-eye"></i> <span class="link-text">View Nominal Roll</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'load-nominal-roll' %}"><i class="mdi mdi-file-document icon-load-nominal-roll" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="link-text">Post Nominal Roll</span></a></li>
+                        <li><a href="#" class="load-link" data-url="{% url 'nominal-roll' %}"><i class="mdi mdi-file-eye icon-view-nominal-roll" style="font-size: 1.5em; margin-right: 8px;"></i> <span class="link-text">View Nominal Roll</span></a></li>
                     </ul>
                 </li>
-                <a href="{% url 'logout' %}" class="nav-item"><i class="mdi mdi-exit-to-app"></i><span class="menu-text">Logout</a>
-            </ul>
+                <!-- Logout Section -->
+                <a href="{% url 'logout' %}" class="nav-item"><i class="mdi mdi-exit-to-app icon-logout" style="font-size: 1.5em; margin-right: 8px;"></i><span class="menu-text">Logout</a>
+                </ul>
         </aside>
 
         <!-- Main content -->
@@ -61,6 +62,7 @@
             <!-- Header -->
             <header class="navbar navbar-expand-lg border-bottom">
                 <div class="container-fluid">
+                    <img src="{% static 'img/mmust-logo.png' %}" alt="MMUST Logo" class="header-logo">
                     <button id="toggleSidebar" class="btn"><i class="mdi mdi-menu"></i></button>
                     <span class="navbar-brand ms-2">Mark Tracker</span>
                     <span class="ms-auto">Welcome, <i><b>{{ last_name|default:"Guest" }}</b></i></span>
