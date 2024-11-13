@@ -15,7 +15,7 @@
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar border-end" style="height: 100vh; overflow-y: auto;">
             <div class="sidebar-logo text-center py-3">
-                <img src="{% static 'img/mmust-logo.png' %}" alt="MMUST Logo" class="cod-logo">
+                <img src="{% static 'img/mmust-logo.png' %}" alt="MMUST Logo" class="mmust-logo">
             </div>
             <ul class="list-unstyled ps-3">
                 <li class="mb-3">
@@ -85,7 +85,9 @@
                 <div class="container-fluid">
                     <button id="toggleSidebar" class="btn"><i class="mdi mdi-menu"></i></button>
                     <img src="{% static 'img/mmust-logo.png' %}" alt="MMUST Logo" class="header-logo">
-                    <span class="navbar-brand ms-2">Mark Tracker</span>
+                     <span class="navbar-brand ms-2" style="font-size: 1.5em; font-weight: bold; color: #333; letter-spacing: 1px; font-family: Arial, sans-serif;">
+                        Missing Marks Tracking System
+                    </span> 
                     <span class="ms-auto">Welcome, <i><b>{{ last_name|default:"Guest" }}</b></i></span>
                 </div>
             </header>

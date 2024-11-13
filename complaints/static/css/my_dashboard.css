@@ -5,7 +5,7 @@
 }
 
 .sidebar {
-    width: 230px;
+    width: 240px;
     background-color: #333333;
     transition: width 0.3s ease;
 }
@@ -346,6 +346,7 @@ a:hover {
 }
 
 .icon-complaints,
+.icon-responses,
 .icon-overdue,
 .icon-student-responses,
 .icon-lecturer-responses,
