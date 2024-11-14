@@ -1139,3 +1139,14 @@ class DeleteResponseView(DeleteView):
     template_name = 'confirm_delete_response.html'
     success_url = reverse_lazy('lecturer-student-responses')
 
+    def delete(self, request, *args, **kwargs):
+        try:
+            response = super().delete(request, *args, **kwargs)
+            messages.success(request, "Response deleted successfully.")
+            return response
+        except Exception as e:
+            messages.error(request, "Failed to delete response.")
+            return redirect(self.success_url)
+
+
+
