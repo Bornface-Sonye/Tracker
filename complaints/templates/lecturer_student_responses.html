@@ -88,13 +88,15 @@
             {% endfor %}
         </div>
     {% endif %}
-    
+
     <h2>Result Information</h2>
     {% if student_responses %}
         <table>
             <thead>
                 <tr>
-                    <th>Response</th>
+                    <th>Responder (Lecturer)</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
                     <th>Reg No</th>
                     <th>Unit Code</th>
                     <th>Cat</th>
@@ -106,7 +108,9 @@
             <tbody>
                 {% for response in student_responses %}
                     <tr>
-                        <td>{{ response.response }}</td>
+                        <td>{{ response.responder.first_name }} {{ response.responder.last_name }}</td>
+                        <td>{{ response.responder.email_address }}</td>
+                        <td>{{ response.responder.phone_number }}</td>
                         <td>{{ response.reg_no.reg_no }}</td>
                         <td>{{ response.unit_code.unit_code }}</td>
                         <td>{{ response.cat }}</td>
