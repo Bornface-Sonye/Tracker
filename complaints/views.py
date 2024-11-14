@@ -13,9 +13,6 @@ from datetime import timedelta
 from django.db import transaction
 from django.db import IntegrityError
 
-from .utils import SubscriptionManager, PaymentProcessor
-import requests  # For M-Pesa API calls
-
 from django.http import JsonResponse
 from django.views.generic import View
 

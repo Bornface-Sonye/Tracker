@@ -243,14 +243,6 @@ class Response(models.Model):
         # Apply custom clean validation before saving
         self.clean()
         super().save(*args, **kwargs)
-
-class Payment(models.Model):
-    reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
-    amount_available = models.DecimalField(max_digits=10, decimal_places=2)
-    complaints_remaining = models.IntegerField()
-
-    def __str__(self):
-        return f"{self.reg_no} - {self.amount_available} - {self.complaints_remaining}"
     
 class System_User(models.Model):
     username = models.CharField(primary_key=True, unique=True, max_length=50, help_text="Enter a valid Username")

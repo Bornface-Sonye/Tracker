@@ -81,12 +81,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'pesamashinaniservices@gmail.com'
 EMAIL_HOST_PASSWORD = 'gjch yrql wced cjxm'  # Use the App Password generated
 
-# M-Pesa settings
-CONSUMER_KEY = 'iUxIlMxhUAKzZeSCz6sWvHaOnE8vgZQAUozLAw4HvkSp0SRm'  # Your M-Pesa consumer key
-CONSUMER_SECRET = 'tKuC8G9qsKiODjb2aBaW8cOkLpRJZsyTPQSetmAG37wtrvkuO8pBFB3kwxxD1bHb'  # Your M-Pesa consumer secret
-POCHI_PHONE_NUMBER = '0758483179'  # Replace with your actual Pochi La Biashara phone number
-TILL_NUMBER = 'your_till_number'  # Replace with your Pochi la Biashara till number if applicable
-
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'

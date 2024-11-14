@@ -3,7 +3,7 @@ import random
 import string
 from .models import (
 School, Department, Course, Student, Lecturer, Unit, NominalRoll,
-Response, LecturerUnit, Result, Complaint, System_User, AcademicYear, Payment
+Response, LecturerUnit, Result, Complaint, System_User, AcademicYear
 )
 
 class SignUpForm(forms.ModelForm):
