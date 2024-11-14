@@ -17,6 +17,7 @@ from .utils import SubscriptionManager, PaymentProcessor
 import requests  # For M-Pesa API calls
 
 from django.http import JsonResponse
+from django.views.generic import View
 
 from django.db import models
 import re
@@ -34,7 +35,7 @@ import uuid
 from django.contrib import messages
 
 from .models import ( 
-School, Department, Course, Student, Lecturer, Unit, NominalRoll, ApprovedResponse,
+School, Department, Course, Student, Lecturer, Unit, NominalRoll,
 Response, LecturerUnit, Result, Complaint, System_User, Payment, AcademicYear
 )
 
@@ -416,6 +417,72 @@ class ComplaintsView(ListView):
 
         # Render the complaints in the template
         return render(request, self.template_name, {'complaints': complaints})
+    
+class Exam_ComplaintsView(ListView):
+    template_name = 'exam_complaints_list.html'
+    context_object_name = 'complaints'
+
+    def get(self, request):
+        username = request.session.get('username')
+        if not username:
+            return redirect('login')  # Redirect to login if username is not in session
+
+        # Retrieve the lecturer based on the username
+        lecturer = get_object_or_404(Lecturer, username=username)
+
+        # Fetch the lecturer's units with academic years and course codes
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer.lec_no)
+        
+        # Extract unit codes, course codes, and academic years into sets for optimized querying
+        unit_codes = lecturer_units.values_list('unit_code', flat=True).distinct()
+        academic_years = lecturer_units.values_list('academic_year', flat=True).distinct()
+        course_codes = lecturer_units.values_list('course_code', flat=True).distinct()
+        
+        # Fetch student registration numbers associated with the courses taught by the lecturer
+        reg_nos = Student.objects.filter(course_code__in=course_codes).values_list('reg_no', flat=True)
+
+        # Query complaints associated with the lecturer's units, academic years, and student registration numbers
+        complaints = Complaint.objects.filter(
+            reg_no__in=reg_nos,
+            unit_code__in=unit_codes,
+            academic_year__in=academic_years
+        )
+
+        # Render the complaints in the template
+        return render(request, self.template_name, {'complaints': complaints})
+    
+class COD_ComplaintsView(ListView):
+    template_name = 'cod_complaints_list.html'
+    context_object_name = 'complaints'
+
+    def get(self, request):
+        username = request.session.get('username')
+        if not username:
+            return redirect('login')  # Redirect to login if username is not in session
+
+        # Retrieve the lecturer based on the username
+        lecturer = get_object_or_404(Lecturer, username=username)
+
+        # Fetch the lecturer's units with academic years and course codes
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer.lec_no)
+        
+        # Extract unit codes, course codes, and academic years into sets for optimized querying
+        unit_codes = lecturer_units.values_list('unit_code', flat=True).distinct()
+        academic_years = lecturer_units.values_list('academic_year', flat=True).distinct()
+        course_codes = lecturer_units.values_list('course_code', flat=True).distinct()
+        
+        # Fetch student registration numbers associated with the courses taught by the lecturer
+        reg_nos = Student.objects.filter(course_code__in=course_codes).values_list('reg_no', flat=True)
+
+        # Query complaints associated with the lecturer's units, academic years, and student registration numbers
+        complaints = Complaint.objects.filter(
+            reg_no__in=reg_nos,
+            unit_code__in=unit_codes,
+            academic_year__in=academic_years
+        )
+
+        # Render the complaints in the template
+        return render(request, self.template_name, {'complaints': complaints})
 
 
 class ResponseView(FormView):
@@ -485,6 +552,148 @@ class ResponseView(FormView):
                 return self.form_invalid(form)
 
         return redirect(reverse('complaints'))
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
+    
+class Exam_ResponseView(FormView):
+    template_name = 'exam_response_form.html'
+    form_class = ResponseForm
+
+    def generate_response_code(self):
+        while True:
+            letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            numbers = ''.join(random.choices(string.digits, k=3))
+            code = letters + numbers
+            if not Response.objects.filter(response_code=code).exists():
+                return code
+
+    def dispatch(self, request, *args, **kwargs):
+        # Ensure the user is logged in
+        username = request.session.get('username')
+        if not username:
+            return redirect('login')  # Redirect to login if not logged in
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        complaint_code = self.kwargs['complaint_code']
+        complaint = get_object_or_404(Complaint, complaint_code=complaint_code)
+
+        # Pass complaint data to the context
+        context['complaint_code'] = complaint_code
+        context['reg_no'] = complaint.reg_no
+        context['unit_code'] = complaint.unit_code
+        context['academic_year'] = complaint.academic_year
+        return context
+
+    def form_valid(self, form):
+        complaint_code = self.kwargs['complaint_code']
+        complaint = get_object_or_404(Complaint, complaint_code=complaint_code)
+        username = self.request.session.get('username')
+        lecturer = get_object_or_404(Lecturer, username=username)
+
+        # Check if a response already exists for the given reg_no and unit_code
+        if Response.objects.filter(reg_no=complaint.reg_no, unit_code=complaint.unit_code).exists():
+            messages.error(self.request, 'A response already exists for this unit and student.')
+            return self.form_invalid(form)
+
+        # Wrap save and delete operations in a transaction
+        with transaction.atomic():
+            try:
+                # Create response instance but don't save it yet
+                response = form.save(commit=False)
+                response.response_code = self.generate_response_code()
+                response.responder = lecturer
+                response.reg_no = complaint.reg_no
+                response.academic_year = complaint.academic_year
+                response.unit_code = complaint.unit_code
+                response.date = timezone.now()
+
+                # Attempt to save the response instance
+                response.save()
+
+                # Delete the complaint after saving the response
+                complaint.delete()
+
+                # Add a success message
+                messages.success(self.request, 'Response saved successfully.')
+            except IntegrityError:
+                messages.error(self.request, 'Error: Response with this unit and registration number already exists.')
+                return self.form_invalid(form)
+
+        return redirect(reverse('exam-complaints'))
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
+    
+class COD_ResponseView(FormView):
+    template_name = 'cod_response_form.html'
+    form_class = ResponseForm
+
+    def generate_response_code(self):
+        while True:
+            letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            numbers = ''.join(random.choices(string.digits, k=3))
+            code = letters + numbers
+            if not Response.objects.filter(response_code=code).exists():
+                return code
+
+    def dispatch(self, request, *args, **kwargs):
+        # Ensure the user is logged in
+        username = request.session.get('username')
+        if not username:
+            return redirect('login')  # Redirect to login if not logged in
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        complaint_code = self.kwargs['complaint_code']
+        complaint = get_object_or_404(Complaint, complaint_code=complaint_code)
+
+        # Pass complaint data to the context
+        context['complaint_code'] = complaint_code
+        context['reg_no'] = complaint.reg_no
+        context['unit_code'] = complaint.unit_code
+        context['academic_year'] = complaint.academic_year
+        return context
+
+    def form_valid(self, form):
+        complaint_code = self.kwargs['complaint_code']
+        complaint = get_object_or_404(Complaint, complaint_code=complaint_code)
+        username = self.request.session.get('username')
+        lecturer = get_object_or_404(Lecturer, username=username)
+
+        # Check if a response already exists for the given reg_no and unit_code
+        if Response.objects.filter(reg_no=complaint.reg_no, unit_code=complaint.unit_code).exists():
+            messages.error(self.request, 'A response already exists for this unit and student.')
+            return self.form_invalid(form)
+
+        # Wrap save and delete operations in a transaction
+        with transaction.atomic():
+            try:
+                # Create response instance but don't save it yet
+                response = form.save(commit=False)
+                response.response_code = self.generate_response_code()
+                response.responder = lecturer
+                response.reg_no = complaint.reg_no
+                response.academic_year = complaint.academic_year
+                response.unit_code = complaint.unit_code
+                response.date = timezone.now()
+
+                # Attempt to save the response instance
+                response.save()
+
+                # Delete the complaint after saving the response
+                complaint.delete()
+
+                # Add a success message
+                messages.success(self.request, 'Response saved successfully.')
+            except IntegrityError:
+                messages.error(self.request, 'Error: Response with this unit and registration number already exists.')
+                return self.form_invalid(form)
+
+        return redirect(reverse('cod-complaints'))
 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
@@ -900,28 +1109,7 @@ class StudentResponsesView(View):
         except Lecturer.DoesNotExist:
             return render(request, 'student_responses.html', {'error': 'Lecturer not found.'})
 
-class ApproveResponseView(View):
-    def post(self, request):
-        response_id = request.POST.get('response_id')
-        try:
-            # Retrieve the response instance
-            response = Response.objects.get(id=response_id)
-            # Create an ApprovedResponse entry
-            ApprovedResponse.objects.create(
-                reg_no=response.reg_no,
-                unit_code=response.unit_code,
-                academic_year=response.academic_year,
-                cat=response.cat,
-                exam=response.exam,
-                date=response.date
-            )
-            # Delete the original response
-            response.delete()
-            return JsonResponse({'status': 'success'}, status=200)
-        except Response.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Response not found'}, status=404)
-
-class StudentApprovedResponsesView(View):
+class LecturerStudentResponsesView(View):
     def get(self, request):
         username = request.session.get('username')
         if not username:
@@ -933,7 +1121,7 @@ class StudentApprovedResponsesView(View):
             department_code = lecturer.dep_code
 
             # Query responses and loaded results for students in the COD's department
-            student_responses = ApprovedResponse.objects.filter(
+            student_responses = Response.objects.filter(
                 reg_no__course_code__dep_code=department_code
             ).select_related('reg_no', 'unit_code')
 
@@ -941,44 +1129,13 @@ class StudentApprovedResponsesView(View):
             context = {
                 'student_responses': student_responses,
             }
-            return render(request, 'student_responses_approved.html', context)
+            return render(request, 'lecturer_student_responses.html', context)
 
         except Lecturer.DoesNotExist:
-            return render(request, 'student_responses_approved.html', {'error': 'Lecturer not found.'})
-        
-class RecordedResponseView(View):
-    def post(self, request):
-        response_id = request.POST.get('response_id')
-        try:
-            # Retrieve the response instance
-            response = ApprovedResponse.objects.get(id=response_id)
+            return render(request, 'lecturer_student_responses.html', {'error': 'Lecturer not found.'})
 
-            # Convert cat and exam marks to integers or set to 0 if invalid
-            cat = 0
-            if response.cat.isdigit():
-                cat = int(response.cat)
-                if not (0 <= cat <= 30):
-                    cat = 0  # Set to 0 if outside the valid range
-
-            exam = 0
-            if response.exam.isdigit():
-                exam = int(response.exam)
-                if not (0 <= exam <= 70):
-                    exam = 0  # Set to 0 if outside the valid range
-
-            # Now cat and exam are integers, safe to pass to the Result model
-            Result.objects.create(
-                reg_no=response.reg_no,
-                unit_code=response.unit_code,
-                academic_year=response.academic_year,
-                cat=cat,  # cat is an integer now
-                exam=exam,  # exam is an integer now
-            )
-
-            # Delete the original response
-            response.delete()
-
-            return JsonResponse({'status': 'success'}, status=200)
-        except ApprovedResponse.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Response not found'}, status=404)
+class DeleteResponseView(DeleteView):
+    model = Response
+    template_name = 'confirm_delete_response.html'
+    success_url = reverse_lazy('lecturer-student-responses')
 

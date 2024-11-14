@@ -2,16 +2,24 @@ from django.urls import path
 from . import views
 from .views import (
     SignUpView, LoginView, COD_DashboardView, Exam_DashboardView, Lecturer_DashboardView, LogoutView, StudentRegNo,
-    ComplaintsView, ResponseView, LoadNominalRollView, LoadResultView, LecturerOverdueComplaintsView, PostComplaint,
+    ComplaintsView, Exam_ComplaintsView, COD_ComplaintsView,
+    ResponseView, Exam_ResponseView, COD_ResponseView, 
+    LoadNominalRollView, LoadResultView, LecturerOverdueComplaintsView, PostComplaint,
     StudentOverdueComplaintsView, ResponsesView, StudentResponsesView, NominalRollListView, ResultListView,
-    StudentApprovedResponsesView, RecordedResponseView, ApproveResponseView
+    LecturerStudentResponsesView, DeleteResponseView
 )
 
 urlpatterns = [
     path('student/', StudentRegNo.as_view(), name='student'),
     path('post-complaint/', PostComplaint.as_view(), name='post-complaint'),
+    
     path('complaints/', ComplaintsView.as_view(), name='complaints'),
+    path('exam/complaints/', Exam_ComplaintsView.as_view(), name='exam-complaints'),
+    path('cod/complaints/', COD_ComplaintsView.as_view(), name='cod-complaints'),
+    
     path('respond/<str:complaint_code>/', ResponseView.as_view(), name='response-form'),
+    path('respond/<str:complaint_code>/', Exam_ResponseView.as_view(), name='exam-response-form'),
+    path('respond/<str:complaint_code>/', COD_ResponseView.as_view(), name='cod-response-form'),
  
     path('register/',SignUpView.as_view(), name='signup'),
     path('login/',LoginView.as_view(), name='login'),
@@ -32,11 +40,9 @@ urlpatterns = [
     path('overdue-student-complaints/', StudentOverdueComplaintsView.as_view(), name='overdue-student-complaints'),
     
     path('responses/', ResponsesView.as_view(), name='responses'),
-    path('student-responses/', StudentResponsesView.as_view(), name='student-responses'),    
+    path('students/responses/', StudentResponsesView.as_view(), name='student-responses'),    
     
-    path('approve-response/', ApproveResponseView.as_view(), name='approve-response'),
+    path('student/responses/', LecturerStudentResponsesView.as_view(), name='lecturer-student-responses'),
     
-    path('approved-responses/', StudentApprovedResponsesView.as_view(), name='approved-responses'),
-    
-    path('record-response/', RecordedResponseView.as_view(), name='record-response'),
+    path('delete-response/<int:pk>/', DeleteResponseView.as_view(), name='delete-response'),
 ]

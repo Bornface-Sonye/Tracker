@@ -196,7 +196,8 @@ class Complaint(models.Model):
         super().save(*args, **kwargs)
 
 class Response(models.Model):
-    response_code = models.CharField(max_length=100, primary_key=True)
+    response_id = models.AutoField(primary_key=True, unique=True)
+    response_code = models.CharField(max_length=100, unique=True)
     responder = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
     response = models.CharField(
         max_length=100,
@@ -220,42 +221,6 @@ class Response(models.Model):
             models.UniqueConstraint(
                 fields=['reg_no', 'unit_code'],
                 name='unique_response_per_student_unit'
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.response_code}"
-
-    def clean(self):
-        # Ensure CAT and Exam are either '-' or within specified ranges
-        if self.cat == '-' or (self.cat.isdigit() and 0 <= int(self.cat) <= 30):
-            pass
-        else:
-            raise ValidationError("CAT must be an integer between 0 and 30, or '-'")
-        
-        if self.exam == '-' or (self.exam.isdigit() and 0 <= int(self.exam) <= 70):
-            pass
-        else:
-            raise ValidationError("Exam must be an integer between 0 and 70, or '-'")
-
-    def save(self, *args, **kwargs):
-        # Apply custom clean validation before saving
-        self.clean()
-        super().save(*args, **kwargs)
-
-class ApprovedResponse(models.Model):
-    reg_no = models.ForeignKey(Student, on_delete=models.CASCADE)
-    unit_code = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
-    cat = models.CharField(max_length=3, default='-', help_text="Enter Cat Mark or -")  # Now non-nullable with default
-    exam = models.CharField(max_length=3, default='-', help_text="Enter Exam Mark or -")  # Required field
-    date = models.DateField(default=timezone.now)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['reg_no', 'unit_code'],
-                name='unique_approved_response_per_student_unit'
             )
         ]
 

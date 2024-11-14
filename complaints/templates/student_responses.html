@@ -94,7 +94,6 @@
     {% else %}
         <p>No responses found for students.</p>
     {% endif %}
-    
     <h2>Result Information</h2>
     {% if student_responses %}
         <table>
@@ -106,7 +105,6 @@
                     <th>Cat</th>
                     <th>Exam</th>
                     <th>Date</th>
-                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -118,9 +116,6 @@
                         <td>{{ response.cat }}</td>
                         <td>{{ response.exam }}</td>
                         <td>{{ response.date }}</td>
-                        <td>
-                            <button class="approve-btn" data-response-id="{{ response.id }}">Approve</button>
-                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -128,46 +123,4 @@
     {% else %}
         <p>No Results found for students.</p>
     {% endif %}
-
-    <div id="approveDialog" style="display:none;">
-        <p>Are you sure you want to approve this response?</p>
-        <button id="confirmApprove">Yes</button>
-        <button id="cancelApprove">No</button>
-    </div>
-
-    <script>
-        document.querySelectorAll('.approve-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                var responseId = this.getAttribute('data-response-id');
-                var dialog = document.getElementById('approveDialog');
-                dialog.style.display = 'block';
-
-                document.getElementById('confirmApprove').onclick = function() {
-                    fetch("{% url 'approve-response' %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({ 'response_id': responseId })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            window.location.reload();
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-
-                    dialog.style.display = 'none';
-                };
-
-                document.getElementById('cancelApprove').onclick = function() {
-                    dialog.style.display = 'none';
-                };
-            });
-        });
-    </script>
-
-{% endblock %}
+    {% endblock %}

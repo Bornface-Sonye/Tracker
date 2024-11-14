@@ -61,7 +61,33 @@
                 white-space: nowrap;
             }
         }
-    </style>         
+        /* Optional: Add some styling for the messages */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        .alert-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .alert-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+
+    <!-- Display success or error messages -->
+    {% if messages %}
+        <div class="alert-container">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
     
     <h2>Result Information</h2>
     {% if student_responses %}
@@ -87,7 +113,8 @@
                         <td>{{ response.exam }}</td>
                         <td>{{ response.date }}</td>
                         <td>
-                            <button class="record-btn" data-response-id="{{ response.id }}">Record</button>
+                            <a href="{% url 'delete-response' response.pk %}">Delete</a>
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -96,46 +123,4 @@
     {% else %}
         <p>No Results found for students.</p>
     {% endif %}
-
-    <div id="recordDialog" style="display:none;">
-        <p>Are you sure you want to record this response?</p>
-        <button id="confirmRecord">Yes</button>
-        <button id="cancelRecord">No</button>
-    </div>
-
-    <script>
-        document.querySelectorAll('.record-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                var responseId = this.getAttribute('data-response-id');
-                var dialog = document.getElementById('recordDialog');
-                dialog.style.display = 'block';
-
-                document.getElementById('confirmRecord').onclick = function() {
-                    fetch("{% url 'record-response' %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({ 'response_id': responseId })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            window.location.reload();
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-
-                    dialog.style.display = 'none';
-                };
-
-                document.getElementById('cancelRecord').onclick = function() {
-                    dialog.style.display = 'none';
-                };
-            });
-        });
-    </script>
-
 {% endblock %}
