@@ -17,9 +17,9 @@ urlpatterns = [
     path('exam/complaints/', Exam_ComplaintsView.as_view(), name='exam-complaints'),
     path('cod/complaints/', COD_ComplaintsView.as_view(), name='cod-complaints'),
     
-    path('respond/<str:complaint_code>/', ResponseView.as_view(), name='response-form'),
-    path('respond/<str:complaint_code>/', Exam_ResponseView.as_view(), name='exam-response-form'),
-    path('respond/<str:complaint_code>/', COD_ResponseView.as_view(), name='cod-response-form'),
+    path('lecturer/respond/<str:complaint_code>/', ResponseView.as_view(), name='response-form'),
+    path('exam/respond/<str:complaint_code>/', Exam_ResponseView.as_view(), name='exam-response-form'),
+    path('cod/respond/<str:complaint_code>/', COD_ResponseView.as_view(), name='cod-response-form'),
  
     path('register/',SignUpView.as_view(), name='signup'),
     path('login/',LoginView.as_view(), name='login'),
