@@ -2,12 +2,12 @@ from django.urls import path
 from . import views
 from .views import (
     SignUpView, LoginView, COD_DashboardView, Exam_DashboardView, Lecturer_DashboardView, LogoutView, StudentRegNo,
-    ComplaintsView, Exam_ComplaintsView, COD_ComplaintsView,
-    ResponseView, Exam_ResponseView, COD_ResponseView, 
+    ComplaintsView, Exam_ComplaintsView, COD_ComplaintsView, ResponseView, Exam_ResponseView, COD_ResponseView, 
     LoadNominalRollView, LoadResultView, Exam_LoadNominalRollView, Exam_LoadResultView, COD_LoadNominalRollView, 
     COD_LoadResultView, LecturerOverdueComplaintsView, PostComplaint, StudentOverdueComplaintsView, ResponsesView, 
     StudentResponsesView, LecturerStudentResponsesView, DeleteResponseView, NominalRollListView, ResultListView,
-    Exam_NominalRollListView, Exam_ResultListView, COD_NominalRollListView, COD_ResultListView,
+    Exam_NominalRollListView, Exam_ResultListView, COD_NominalRollListView, COD_ResultListView, ResetPasswordView, 
+    ResetPasswordConfirmView
 )
 
 urlpatterns = [
@@ -58,4 +58,7 @@ urlpatterns = [
     path('student/responses/', LecturerStudentResponsesView.as_view(), name='lecturer-student-responses'),
     
     path('delete-response/<int:pk>/', DeleteResponseView.as_view(), name='delete-response'),
+    
+    path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
+    path('reset-password/<str:token>/', ResetPasswordConfirmView.as_view(), name='reset-password-confirm'),
 ]

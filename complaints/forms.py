@@ -2,7 +2,7 @@ from django import forms
 import random
 import string
 from .models import (
-School, Department, Course, Student, Lecturer, Unit, NominalRoll,
+School, Department, Course, Student, Lecturer, Unit, NominalRoll, PasswordResetToken,
 Response, LecturerUnit, Result, Complaint, System_User, AcademicYear
 )
 
@@ -138,4 +138,48 @@ class ResponseForm(forms.ModelForm):
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(label='Select a CSV or Excel file')
+
+
+class PasswordResetForm(forms.Form):
+    username = forms.EmailField(
+        label='Username',
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email address(Username)'})
+    )
     
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if not System_User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This Username is not associated with any account.")
+        return username
+    
+ 
+class ResetForm(forms.ModelForm):
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password', 'class': 'form-control'})
+    )
+    
+    class Meta:
+        model = System_User
+        fields = ['password_hash']
+        labels = {
+            'password_hash': 'Password',
+            'confirm_password': 'Confirm Password',
+        }
+        widgets = {
+            'password_hash': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}),
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password_hash")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            raise forms.ValidationError("Password and confirm password do not match")
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.set_password(self.cleaned_data["password_hash"])
+        if commit:
+            instance.save()
+        return instance    
