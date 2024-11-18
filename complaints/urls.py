@@ -4,9 +4,10 @@ from .views import (
     SignUpView, LoginView, COD_DashboardView, Exam_DashboardView, Lecturer_DashboardView, LogoutView, StudentRegNo,
     ComplaintsView, Exam_ComplaintsView, COD_ComplaintsView,
     ResponseView, Exam_ResponseView, COD_ResponseView, 
-    LoadNominalRollView, LoadResultView, LecturerOverdueComplaintsView, PostComplaint,
-    StudentOverdueComplaintsView, ResponsesView, StudentResponsesView, NominalRollListView, ResultListView,
-    LecturerStudentResponsesView, DeleteResponseView
+    LoadNominalRollView, LoadResultView, Exam_LoadNominalRollView, Exam_LoadResultView, COD_LoadNominalRollView, 
+    COD_LoadResultView, LecturerOverdueComplaintsView, PostComplaint, StudentOverdueComplaintsView, ResponsesView, 
+    StudentResponsesView, LecturerStudentResponsesView, DeleteResponseView, NominalRollListView, ResultListView,
+    Exam_NominalRollListView, Exam_ResultListView, COD_NominalRollListView, COD_ResultListView,
 )
 
 urlpatterns = [
@@ -33,8 +34,20 @@ urlpatterns = [
     path('load-nominal-roll/', LoadNominalRollView.as_view(), name='load-nominal-roll'),
     path('load-result/', LoadResultView.as_view(), name='load-result'),
     
-    path('nominal-roll/', NominalRollListView.as_view(), name='nominal-roll'),
-    path('result/', ResultListView.as_view(), name='result'),
+    path('exam/load-nominal-roll/', Exam_LoadNominalRollView.as_view(), name='exam-load-nominal-roll'),
+    path('exam/load-result/', Exam_LoadResultView.as_view(), name='exam-load-result'),
+    
+    path('load-nominal-roll/', LoadNominalRollView.as_view(), name='load-nominal-roll'),
+    path('load-result/', LoadResultView.as_view(), name='load-result'),
+    
+    path('cod/nominal-roll/', COD_NominalRollListView.as_view(), name='cod-nominal-roll'),
+    path('cod/result/', COD_ResultListView.as_view(), name='cod-result'),
+    
+    path('exam/nominal-roll/', Exam_NominalRollListView.as_view(), name='exam-nominal-roll'),
+    path('exam/result/', Exam_ResultListView.as_view(), name='exam-result'),
+    
+    path('cod/nominal-roll/', COD_NominalRollListView.as_view(), name='cod-nominal-roll'),
+    path('cod/result/', COD_ResultListView.as_view(), name='cod-result'),
     
     path('overdue-lecturer-complaints/', LecturerOverdueComplaintsView.as_view(), name='overdue-lecturer-complaints'),
     path('overdue-student-complaints/', StudentOverdueComplaintsView.as_view(), name='overdue-student-complaints'),
