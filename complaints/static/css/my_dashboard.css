@@ -5,8 +5,8 @@
 }
 
 .sidebar {
-    width: 240px;
-    background-color: #333333;
+    width: 250px;
+    background-color: #333;
     transition: width 0.3s ease;
 }
 
@@ -40,7 +40,7 @@
     color: #d3d3d3;
     font-weight: 500;
     text-decoration: none;
-    background-color: #333333;
+    background-color: #00008b;
     transition: background-color 0.2s;
 }
 
@@ -71,19 +71,18 @@
     background-color: #add8e6;
     color: #333;
 }
+
 .mmust-logo {
-    max-width: 200px;
+    max-width: 40px;
     height: auto;
-    margin-right: 2px;
-    margin-left: 2px;
+    margin-right: 10px;
     border-radius: 8px; /* Smooth edges */
 }
 
-.header-logo {
-    max-width: 40px;
+.connect-logo {
+    max-width: 200px;
     height: auto;
-    margin-right: 2px;
-    margin-left: 10px;
+    margin-right: 10px;
     border-radius: 8px; /* Smooth edges */
 }
 
@@ -104,7 +103,7 @@ button#toggleSidebar {
     display: none;
 }
 
-.collapsed .mmust-logo {
+.collapsed .connect-logo {
     max-width: 50px;
     max-height: 200px;
     height: auto;
@@ -294,119 +293,5 @@ a:hover {
     }
     th, td {
         padding: 6px 8px; /* Reduced padding for smaller screens */
-    }
-}
-
-
-/* Mobile Users */
-@media (max-width: 600px) {
-    table {
-        overflow-x: auto;
-        display: block;
-        width: 100%;
-        -webkit-overflow-scrolling: touch;
-    }
-}
-
-@media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        z-index: 1000;
-        background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
-    }
-
-    .sidebar.collapsed {
-        width: 250px;
-    }
-
-    .sidebar a {
-        color: #ffffff; /* Adjust text color in mobile view */
-    }
-}
-
-
-/* Sidebar Icons Styles */
-/* General Icon Styling */
-.sidebar-icon {
-    font-size: 1.2em;          /* Adjust icon size for a balanced look */
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 0;
-    margin-right: 8px;         /* Space between icon and text */
-    transition: color 0.3s, transform 0.3s; /* Smooth transition for hover */
-}
-
-/* Icon Colors */
-.icon-home {
-    color: #0c94ee;
-}
-
-.icon-complaints,
-.icon-responses,
-.icon-overdue,
-.icon-student-responses,
-.icon-lecturer-responses,
-.icon-logout {
-    color: #0c94ee;
-}
-
-.icon-complaints-link {
-    color: #377037;
-}
-
-.icon-results,
-.icon-nominal-roll {
-    color: #0c94ee;
-}
-
-.icon-load-result {
-    color: #3399a7;
-}
-
-.icon-view-result {
-    color: #2972a3;
-}
-
-.icon-load-nominal-roll {
-    color: #2b86c2;
-}
-
-.icon-view-nominal-roll {
-    color: #1e90ff;
-}
-
-.icon-lecturer-overdue {
-    color: #20b2aa;
-}
-
-/* Text Styling */
-.menu-text {
-    font-family: 'Arial', sans-serif; /* Set a professional font */
-    font-size: 1em;                   /* Adjust font size */
-    color: #2762b9;                      /* Neutral color for text */
-}
-
-/* Hover and Active Effects */
-.sidebar-icon:hover {
-    color: #007acc;          /* Change icon color on hover */
-    transform: scale(1.1);   /* Slightly enlarge icon on hover */
-}
-
-.menu-text:hover {
-    color: #007acc;          /* Change text color on hover */
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .sidebar-icon {
-        font-size: 1.5em;    /* Increase icon size for mobile */
-    }
-
-    .menu-text {
-        font-size: 0.9em;    /* Adjust text size for mobile */
     }
 }

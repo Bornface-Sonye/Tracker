@@ -1698,8 +1698,8 @@ class ResetPasswordConfirmView(View):
         # Check if the token exists in the database
         password_reset_token = PasswordResetToken.objects.filter(token=token).first()
         if not password_reset_token or password_reset_token.is_expired():
-            error_message = "Token is invalid or expired, Try reseting password again."
-            return render(request, self.template_name, {'form': form_class, 'error_message': error_message})
+            error_message = "Token is invalid or expired. Try resetting your password again."
+            return render(request, self.template_name, {'error_message': error_message})
 
         # Initialize the form for GET requests
         form = self.form_class()
@@ -1711,27 +1711,31 @@ class ResetPasswordConfirmView(View):
         # Check if the token exists in the database
         password_reset_token = PasswordResetToken.objects.filter(token=token).first()
         if not password_reset_token or password_reset_token.is_expired():
-            error_message = "Token is invalid or expired, Try reseting password again."
-            return render(request, self.template_name, {'form': form, 'error_message': error_message})
+            error_message = "Token is invalid or expired. Try resetting your password again."
+            return render(request, self.template_name, {'error_message': error_message})
 
-        # Update the user's password
+        # Process the form submission
         form = self.form_class(request.POST)
         if form.is_valid():
             password_hash = form.cleaned_data['password_hash']
-            username = reset.username
             reset = get_object_or_404(PasswordResetToken, token=password_reset_token)
             user = get_object_or_404(System_User, username=reset.username)
+            
+            # Delete the user (if this is the desired behavior)
             user.delete()
-            # Create the account if all checks pass
+            
+            # Create the new account
             account = form.save(commit=False)
-            account.username = username
+            account.username = reset.username
             account.set_password(password_hash)
             account.save()
-            return redirect('login')
-        
+
+            # Delete the token
             password_reset_token.delete()
 
+            # Redirect to the login page
             return redirect('login')
 
-        # If form is invalid, render the form again with errors
-        return render(request, self.template_name, {'form': form, 'token': token})
+        # Render the form again with errors if invalid
+        return render(request, self.template_name, {'form': form, 'token': token, 'error_message': "Invalid form submission. Please check your input."})
+
