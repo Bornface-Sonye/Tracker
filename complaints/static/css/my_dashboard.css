@@ -72,14 +72,14 @@
     color: #333;
 }
 
-.mmust-logo {
+.header-logo {
     max-width: 40px;
     height: auto;
     margin-right: 10px;
     border-radius: 8px; /* Smooth edges */
 }
 
-.connect-logo {
+.mmust-logo {
     max-width: 200px;
     height: auto;
     margin-right: 10px;
@@ -103,7 +103,7 @@ button#toggleSidebar {
     display: none;
 }
 
-.collapsed .connect-logo {
+.collapsed .mmust-logo {
     max-width: 50px;
     max-height: 200px;
     height: auto;

@@ -46,8 +46,8 @@ urlpatterns = [
     path('exam/nominal-roll/', Exam_NominalRollListView.as_view(), name='exam-nominal-roll'),
     path('exam/result/', Exam_ResultListView.as_view(), name='exam-result'),
     
-    path('cod/nominal-roll/', COD_NominalRollListView.as_view(), name='cod-nominal-roll'),
-    path('cod/result/', COD_ResultListView.as_view(), name='cod-result'),
+    path('cod/nominal-roll/', COD_LoadNominalRollView.as_view(), name='cod-load-nominal-roll'),
+    path('cod/result/', COD_LoadResultView.as_view(), name='cod-load-result'),
     
     path('overdue-lecturer-complaints/', LecturerOverdueComplaintsView.as_view(), name='overdue-lecturer-complaints'),
     path('overdue-student-complaints/', StudentOverdueComplaintsView.as_view(), name='overdue-student-complaints'),
