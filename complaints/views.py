@@ -1666,7 +1666,7 @@ class ResetPasswordView(View):
                         [user.username],  # Use the username as the email address
                         fail_silently=False,
                     )
-                    success_message = "A password reset link has been sent to the provided email address."
+                    success_message = f"A password reset link has been sent to {user.username}."
                     return render(request, self.template_name, {'form': form, 'success_message': success_message})
                 except Exception as e:
                     error_message = f"An error occurred: {str(e)} or Email Address does not exist in our records"
