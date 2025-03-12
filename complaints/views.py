@@ -329,19 +329,22 @@ class StudentRegNo(View):
                 return render(request, 'student_reg_no.html', {'form': form})
         return render(request, 'student_reg_no.html', {'form': form})
 
+from django.db import IntegrityError
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.views import View
+from .models import Student, Complaint, NominalRoll, Result
+from .forms import PostComplaintForm
+
 class PostComplaint(View):
     def get(self, request):
         reg_no = request.session.get('registration_number')
         if not reg_no:
             return redirect('student')
 
-        try:
-            student = get_object_or_404(Student, reg_no=reg_no)
-            form = PostComplaintForm(student=student)
-            return render(request, 'post_complaint.html', {'form': form, 'student': student})
-        except Student.DoesNotExist:
-            messages.error(request, "Student details could not be found.")
-            return redirect('student')
+        student = get_object_or_404(Student, reg_no=reg_no)
+        form = PostComplaintForm(student=student)
+        return render(request, 'post_complaint.html', {'form': form, 'student': student})
 
     def post(self, request):
         reg_no = request.session.get('registration_number')
@@ -353,26 +356,38 @@ class PostComplaint(View):
 
         if form.is_valid():
             complaint = form.save(commit=False)
-            complaint.reg_no = student  # Attach the student
+            complaint.reg_no = student
             complaint.complaint_code = form.generate_complaint_code()
             complaint.exam_date = form.cleaned_data['exam_date']
 
-            # Check if a complaint already exists with the same reg_no and unit_code
-            if Complaint.objects.filter(reg_no=student, unit_code=complaint.unit_code).exists():
-                messages.error(request, "A complaint for this unit and student already exists.")
+            unit_code = form.cleaned_data['unit_code']
+            academic_year = form.cleaned_data['academic_year']
+
+            # Check if the student sat for this unit
+            if not NominalRoll.objects.filter(reg_no=student, unit_code=unit_code, academic_year=academic_year).exists():
+                messages.error(request, "You did not sit exam for this particular unit, confirm with your COD or Lecturer.")
+                return render(request, 'post_complaint.html', {'form': form, 'student': student})
+
+            # Check if results exist for this unit
+            if Result.objects.filter(reg_no=student, unit_code=unit_code, academic_year=academic_year).exists():
+                messages.error(request, "You already have result for this particular unit, confirm with your School Exam Office.")
+                return render(request, 'post_complaint.html', {'form': form, 'student': student})
+
+            # Prevent duplicate complaints
+            if Complaint.objects.filter(reg_no=student, unit_code=unit_code, academic_year=academic_year).exists():
+                messages.error(request, "A complaint for this unit and academic year already exists.")
                 return render(request, 'post_complaint.html', {'form': form, 'student': student})
 
             try:
-                # Attempt to save the complaint
                 complaint.save()
                 messages.success(request, "Complaint posted successfully!")
                 return redirect('post-complaint')
             except IntegrityError:
                 messages.error(request, "Failed to post complaint due to a unique constraint violation.")
 
-        # If form is invalid or if there is an error, re-render the form
         messages.error(request, "Failed to post complaint. Please check the details and try again.")
         return render(request, 'post_complaint.html', {'form': form, 'student': student})
+
 
 class ComplaintsView(ListView):
     template_name = 'complaints_list.html'
