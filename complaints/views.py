@@ -12,7 +12,6 @@ from datetime import timedelta
 from django.db import transaction
 from django.db import IntegrityError
 
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -894,38 +893,41 @@ class ResultListView(ListView):
     context_object_name = 'results'
 
     def get_queryset(self):
-        # Get lecturer's lec_no from session username
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Get lec_no associated with the lecturer
-        lec_no = lecturer.lec_no
-        lec_units = LecturerUnit.objects.filter(lec_no=lec_no)
+        # Get unit codes assigned to the lecturer
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer)
 
-        # Base queryset filtered by lecturer's units
-        queryset = Result.objects.filter(
-            unit_code__in=[unit.unit_code for unit in lec_units]
-        )
-
-        # Filter by academic year, unit code, and reg_no if provided in request
-        academic_year = self.request.GET.get('academic_year')
-        unit_code = self.request.GET.get('unit_code')
+        # Get filter parameters
+        academic_year_id = self.request.GET.get('academic_year')
         reg_no = self.request.GET.get('reg_no')
-        sort_field = self.request.GET.get('sort', 'reg_no')  # Default sort by reg_no
+        unit_code = self.request.GET.get('unit_code')
 
-        if academic_year:
-            queryset = queryset.filter(academic_year__academic_year=academic_year)
-        if unit_code:
-            queryset = queryset.filter(unit_code__unit_code=unit_code)
+        if academic_year_id:
+            lecturer_units = lecturer_units.filter(academic_year_id=academic_year_id)
+
+        unit_codes = lecturer_units.values_list('unit_code', flat=True)
+
+        # Filter results based on lecturer's assigned units
+        results = Result.objects.filter(unit_code__in=unit_codes)
+
+        if academic_year_id:
+            results = results.filter(academic_year_id=academic_year_id)
+
         if reg_no:
-            queryset = queryset.filter(reg_no=reg_no)
+            results = results.filter(reg_no__reg_no__icontains=reg_no)
 
-        return queryset.order_by(sort_field)  # Apply sorting
+        if unit_code:
+            results = results.filter(unit_code__unit_code__icontains=unit_code)
+
+        return results
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['academic_years'] = AcademicYear.objects.all()  # To populate filter options
+        context["academic_years"] = AcademicYear.objects.all()
         return context
+
 
 class NominalRollListView(ListView):
     model = NominalRoll
@@ -936,31 +938,38 @@ class NominalRollListView(ListView):
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Get lec_no associated with the lecturer
-        lec_no = lecturer.lec_no
-        lec_units = LecturerUnit.objects.filter(lec_no=lec_no)
-        queryset = NominalRoll.objects.filter(
-            unit_code__in=[unit.unit_code for unit in lec_units]
-        )
-
-        academic_year = self.request.GET.get('academic_year')
-        unit_code = self.request.GET.get('unit_code')
+        # Get the academic year filter from the request
+        academic_year_id = self.request.GET.get('academic_year')
         reg_no = self.request.GET.get('reg_no')
-        sort_field = self.request.GET.get('sort', 'reg_no')
+        unit_code = self.request.GET.get('unit_code')
 
-        if academic_year:
-            queryset = queryset.filter(academic_year__academic_year=academic_year)
-        if unit_code:
-            queryset = queryset.filter(unit_code__unit_code=unit_code)
+        # Get unit codes assigned to the lecturer
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer)
+
+        if academic_year_id:
+            lecturer_units = lecturer_units.filter(academic_year_id=academic_year_id)
+
+        unit_codes = lecturer_units.values_list('unit_code', flat=True)
+
+        # Filter nominal roll based on lecturer's assigned units
+        nominal_rolls = NominalRoll.objects.filter(unit_code__in=unit_codes)
+
+        if academic_year_id:
+            nominal_rolls = nominal_rolls.filter(academic_year_id=academic_year_id)
+
         if reg_no:
-            queryset = queryset.filter(reg_no=reg_no, unit_code=unit_code, academic_year=acdemic_year)
+            nominal_rolls = nominal_rolls.filter(reg_no__reg_no__icontains=reg_no)
 
-        return queryset.order_by(sort_field)
+        if unit_code:
+            nominal_rolls = nominal_rolls.filter(unit_code__unit_code__icontains=unit_code)
+
+        return nominal_rolls
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['academic_years'] = AcademicYear.objects.all()
+        context["academic_years"] = AcademicYear.objects.all()
         return context
+
 
 class Exam_LoadNominalRollView(View):
     template_name = 'exam_load_nominal_roll.html'
@@ -1145,44 +1154,45 @@ class Exam_LoadResultView(View):
 
         return render(request, self.template_name, {'form': form})
 
-
 class Exam_ResultListView(ListView):
     model = Result
-    template_name = 'exam_result_list.html'
+    template_name = 'cod_result_list.html'
     context_object_name = 'results'
 
     def get_queryset(self):
-        # Get lecturer's lec_no from session username
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Get lec_no associated with the lecturer
-        lec_no = lecturer.lec_no
-        lec_units = LecturerUnit.objects.filter(lec_no=lec_no)
+        # Get unit codes assigned to the lecturer
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer)
 
-        # Base queryset filtered by lecturer's units
-        queryset = Result.objects.filter(
-            unit_code__in=[unit.unit_code for unit in lec_units]
-        )
-
-        # Filter by academic year, unit code, and reg_no if provided in request
-        academic_year = self.request.GET.get('academic_year')
-        unit_code = self.request.GET.get('unit_code')
+        # Get filter parameters
+        academic_year_id = self.request.GET.get('academic_year')
         reg_no = self.request.GET.get('reg_no')
-        sort_field = self.request.GET.get('sort', 'reg_no')  # Default sort by reg_no
+        unit_code = self.request.GET.get('unit_code')
 
-        if academic_year:
-            queryset = queryset.filter(academic_year__academic_year=academic_year)
-        if unit_code:
-            queryset = queryset.filter(unit_code__unit_code=unit_code)
+        if academic_year_id:
+            lecturer_units = lecturer_units.filter(academic_year_id=academic_year_id)
+
+        unit_codes = lecturer_units.values_list('unit_code', flat=True)
+
+        # Filter results based on lecturer's assigned units
+        results = Result.objects.filter(unit_code__in=unit_codes)
+
+        if academic_year_id:
+            results = results.filter(academic_year_id=academic_year_id)
+
         if reg_no:
-            queryset = queryset.filter(reg_no=reg_no)
+            results = results.filter(reg_no__reg_no__icontains=reg_no)
 
-        return queryset.order_by(sort_field)  # Apply sorting
+        if unit_code:
+            results = results.filter(unit_code__unit_code__icontains=unit_code)
+
+        return results
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['academic_years'] = AcademicYear.objects.all()  # To populate filter options
+        context["academic_years"] = AcademicYear.objects.all()
         return context
 
 class Exam_NominalRollListView(ListView):
@@ -1194,31 +1204,38 @@ class Exam_NominalRollListView(ListView):
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Get lec_no associated with the lecturer
-        lec_no = lecturer.lec_no
-        lec_units = LecturerUnit.objects.filter(lec_no=lec_no)
-        queryset = NominalRoll.objects.filter(
-            unit_code__in=[unit.unit_code for unit in lec_units]
-        )
-
-        academic_year = self.request.GET.get('academic_year')
-        unit_code = self.request.GET.get('unit_code')
+        # Get the academic year filter from the request
+        academic_year_id = self.request.GET.get('academic_year')
         reg_no = self.request.GET.get('reg_no')
-        sort_field = self.request.GET.get('sort', 'reg_no')
+        unit_code = self.request.GET.get('unit_code')
 
-        if academic_year:
-            queryset = queryset.filter(academic_year__academic_year=academic_year)
-        if unit_code:
-            queryset = queryset.filter(unit_code__unit_code=unit_code)
+        # Get unit codes assigned to the lecturer
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer)
+
+        if academic_year_id:
+            lecturer_units = lecturer_units.filter(academic_year_id=academic_year_id)
+
+        unit_codes = lecturer_units.values_list('unit_code', flat=True)
+
+        # Filter nominal roll based on lecturer's assigned units
+        nominal_rolls = NominalRoll.objects.filter(unit_code__in=unit_codes)
+
+        if academic_year_id:
+            nominal_rolls = nominal_rolls.filter(academic_year_id=academic_year_id)
+
         if reg_no:
-            queryset = queryset.filter(reg_no=reg_no, unit_code=unit_code, academic_year=acdemic_year)
+            nominal_rolls = nominal_rolls.filter(reg_no__reg_no__icontains=reg_no)
 
-        return queryset.order_by(sort_field)
+        if unit_code:
+            nominal_rolls = nominal_rolls.filter(unit_code__unit_code__icontains=unit_code)
+
+        return nominal_rolls
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['academic_years'] = AcademicYear.objects.all()
+        context["academic_years"] = AcademicYear.objects.all()
         return context
+
 
 class COD_LoadNominalRollView(View):
     template_name = 'cod_load_nominal_roll.html'
@@ -1417,80 +1434,88 @@ class COD_LoadResultView(View):
         
         return render(request, self.template_name, {'form': form})
 
-
 class COD_ResultListView(ListView):
     model = Result
     template_name = 'cod_result_list.html'
     context_object_name = 'results'
 
     def get_queryset(self):
-        # Get lecturer's lec_no from session username
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Get lec_no associated with the lecturer
-        lec_no = lecturer.lec_no
-        lec_units = LecturerUnit.objects.filter(lec_no=lec_no)
+        # Get unit codes assigned to the lecturer
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer)
 
-        # Base queryset filtered by lecturer's units
-        queryset = Result.objects.filter(
-            unit_code__in=[unit.unit_code for unit in lec_units]
-        )
-
-        # Filter by academic year, unit code, and reg_no if provided in request
-        academic_year = self.request.GET.get('academic_year')
-        unit_code = self.request.GET.get('unit_code')
+        # Get filter parameters
+        academic_year_id = self.request.GET.get('academic_year')
         reg_no = self.request.GET.get('reg_no')
-        sort_field = self.request.GET.get('sort', 'reg_no')  # Default sort by reg_no
+        unit_code = self.request.GET.get('unit_code')
 
-        if academic_year:
-            queryset = queryset.filter(academic_year__academic_year=academic_year)
-        if unit_code:
-            queryset = queryset.filter(unit_code__unit_code=unit_code)
+        if academic_year_id:
+            lecturer_units = lecturer_units.filter(academic_year_id=academic_year_id)
+
+        unit_codes = lecturer_units.values_list('unit_code', flat=True)
+
+        # Filter results based on lecturer's assigned units
+        results = Result.objects.filter(unit_code__in=unit_codes)
+
+        if academic_year_id:
+            results = results.filter(academic_year_id=academic_year_id)
+
         if reg_no:
-            queryset = queryset.filter(reg_no=reg_no)
+            results = results.filter(reg_no__reg_no__icontains=reg_no)
 
-        return queryset.order_by(sort_field)  # Apply sorting
+        if unit_code:
+            results = results.filter(unit_code__unit_code__icontains=unit_code)
+
+        return results
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['academic_years'] = AcademicYear.objects.all()  # To populate filter options
+        context["academic_years"] = AcademicYear.objects.all()
         return context
 
 class COD_NominalRollListView(ListView):
     model = NominalRoll
     template_name = 'cod_nominal_roll_list.html'
-    context_object_name = 'nominal_rolls'
+    context_object_name = "nominal_rolls"
 
     def get_queryset(self):
         username = self.request.session.get('username')
         lecturer = get_object_or_404(Lecturer, username=username)
 
-        # Get lec_no associated with the lecturer
-        lec_no = lecturer.lec_no
-        lec_units = LecturerUnit.objects.filter(lec_no=lec_no)
-        queryset = NominalRoll.objects.filter(
-            unit_code__in=[unit.unit_code for unit in lec_units]
-        )
-
-        academic_year = self.request.GET.get('academic_year')
-        unit_code = self.request.GET.get('unit_code')
+        # Get the academic year filter from the request
+        academic_year_id = self.request.GET.get('academic_year')
         reg_no = self.request.GET.get('reg_no')
-        sort_field = self.request.GET.get('sort', 'reg_no')
+        unit_code = self.request.GET.get('unit_code')
 
-        if academic_year:
-            queryset = queryset.filter(academic_year__academic_year=academic_year)
-        if unit_code:
-            queryset = queryset.filter(unit_code__unit_code=unit_code)
+        # Get unit codes assigned to the lecturer in the given academic year
+        lecturer_units = LecturerUnit.objects.filter(lec_no=lecturer)
+
+        if academic_year_id:
+            lecturer_units = lecturer_units.filter(academic_year_id=academic_year_id)
+
+        unit_codes = lecturer_units.values_list('unit_code', flat=True)
+
+        # Filter nominal roll based on lecturer's assigned units
+        nominal_rolls = NominalRoll.objects.filter(unit_code__in=unit_codes)
+
+        if academic_year_id:
+            nominal_rolls = nominal_rolls.filter(academic_year_id=academic_year_id)
+
         if reg_no:
-            queryset = queryset.filter(reg_no=reg_no, unit_code=unit_code, academic_year=acdemic_year)
+            nominal_rolls = nominal_rolls.filter(reg_no__reg_no__icontains=reg_no)
 
-        return queryset.order_by(sort_field)
+        if unit_code:
+            nominal_rolls = nominal_rolls.filter(unit_code__unit_code__icontains=unit_code)
+
+        return nominal_rolls
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['academic_years'] = AcademicYear.objects.all()
+        context["academic_years"] = AcademicYear.objects.all()
         return context
+
 
 class LecturerOverdueComplaintsView(View):
     def get(self, request):
